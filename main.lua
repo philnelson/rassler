@@ -25,7 +25,7 @@ function love.load()
 	match = {}
 	
 	menuMusic:setVolume(0.5)
-	--menuMusic:play()
+	menuMusic:play()
 end
 
 function love.update(dt)
