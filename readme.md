@@ -2,6 +2,10 @@
 
 Rassler is a pro wrestling simulation game set during the golden age of territories. It is written in Lua with [Love2d](https://love2d.org). [@philnelson](http://twitter.com/philnelson) is building it for fun.
 
+# Binaries
+
+Download the current version: [Mac OS X](https://dl.dropboxusercontent.com/u/39495/Rassler.zip)
+
 # SCREENS
 
 The game kinda looks like this
