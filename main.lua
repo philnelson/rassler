@@ -1,5 +1,6 @@
 CURRENT_SCREEN = "start"
 WORK_MODES = {"Go all out","Play it safe","Be lazy"}
+require 'Tserial'
 
 function love.load()
 	math.randomseed( tonumber(tostring(os.time()):reverse():sub(1,6)) )
@@ -48,14 +49,47 @@ function love.draw()
 	if CURRENT_SCREEN == "result" then
 		drawResultScreen()
 	end
+	
+	if CURRENT_SCREEN == "debug" then
+		drawDebugScreen()
+	end
+end
+
+function drawDebugScreen()
+	is_file = love.filesystem.exists( "world.ras" )
+	
+	if is_file == false then
+		file, errorstr = love.filesystem.newFile( "world.ras", "a" )
+	
+		newOpponent = {name = generateRasslerName(), image = generateRassler(), nickname = generateRasslerNickname(), skill  = math.random(1,(player.skill*1.2)), health = math.random(40,100), bumps = math.random(1,100), matches = 0, age = math.random(1,100), popularity = math.random(1,player.popularity*1.2), matches = 0,  money = 0}
+	
+		success, errormsg = love.filesystem.append( "world.ras", Tserial.pack(newOpponent) )
+	
+		if success == true then
+			love.graphics.setFont(secondaryFont);
+			realdir = love.filesystem.getRealDirectory( "world.ras" )
+			love.graphics.print("Saved new world file", 0, 0)
+		
+		else
+		
+		end
+	else
+		love.graphics.print("Loaded world file", 0, 0)
+	end
 end
 
 function drawCardScreen()
 	drawHUD()
 	
 	love.graphics.setFont(mainFont);
-	love.graphics.draw(player.image, 40, 80)
-	love.graphics.draw(opponent.image,640, 280)
+	
+	player_image = love.graphics.newImage( "rassler" .. player.image .. ".png" )
+	opponent_image = love.graphics.newImage( "rassler" .. opponent.image .. ".png" )
+	
+	love.graphics.draw(player_image, 40, 80)
+	
+	love.graphics.draw(opponent_image,640, 280)
+	
 	love.graphics.setColor(0,0,0)
 	love.graphics.print(".vs.", 300, 230)
 	
@@ -238,10 +272,18 @@ function drawStartScreen()
 	
 	love.graphics.setFont(mainFont)
 	love.graphics.setColor(255,255,255,255)
-	love.graphics.draw(player.image, 40, 290)
+	
+	player_image = love.graphics.newImage( "rassler" .. player.image .. ".png" )
+	
+	love.graphics.draw(player_image, 40, 290)
 end
 
 function love.keyreleased(key)
+	
+	if key == "d" then
+		CURRENT_SCREEN = "debug"
+	end
+	
    if key == " " then
 	   player.name = generateRasslerName()
 	   player.nickname = generateRasslerNickname()
@@ -325,7 +367,7 @@ end
 
 function generateRasslerNickname()
 	
-	nicknameStart = {"Wild","Flying","High","Wicked","Pretty","Demonic","Unstoppable","Incredible","Immortal","Screaming","Cruel","Crazy","Angry","Mad","Masked","Grand","Esteemed","Elegant","Smooth-talkin'","Lunatic","Miracle"}
+	nicknameStart = {"Wild","Flying","Violent","High","Wicked","Pretty","Demonic","Unstoppable","Incredible","Immortal","Rowdy","Screaming","Cruel","Crazy","Angry","Mad","Masked","Grand","Esteemed","Elegant","Smooth-talkin'","Lunatic","Miracle"}
 	nicknameEnding = {"Amazon","Goddess","Astronaut","Grappler","Crippler","Stranger","Person","Cowboy","Flyer","Doctor","Wizard","Dervish","Shiek","Gremlin","Wrestler","Beekeeper","Element","Leader","Snake-charmer"}
 	
 	return nicknameStart[math.random(1,tablelength(nicknameStart))] .. ' ' .. nicknameEnding[math.random(1,tablelength(nicknameEnding))]
@@ -333,15 +375,15 @@ end
 
 function generateRasslerName()
 	
-	firstNames = {"J.P.","Serena","Venus","Prince","Ed","Kareen","Momar","Linda","Elizabeth","General","Bruce","Ricky","Big","Tracey","Rick","Ric","Rik","Jake","Bobby","Rob","Butch","Randy","Steve","Chris","Thomas","Jack","Greg","Tony","Sherri","Tina","Blaze","Tonya","Hoss","Li","Sharon","Kiki","Sofia","Renata","Maria"}
-	lastNames = {"Swindler","Badd","Blood","Huang","Tsung","Chung","Wu","Nelson","Lewis","Adnan","Bruce","James","Calhoun","Roberts","McGill","Jane","Victory","Adams","Strong","Schwartz","Foreign","Brute","King","Brutal","Johnson","Torrid","Luxury","Benjamin","Swizzle"}
+	firstNames = {"Hiroshi","Satoru","J.P.","Serena","Venus","Prince","Ed","Kareen","Momar","Linda","Elizabeth","General","Bruce","Ricky","Big","Tracey","Rick","Ric","Rik","Jake","Bobby","Rob","Butch","Randy","Steve","Chris","Thomas","Jack","Greg","Tony","Sherri","Tina","Blaze","Tonya","Hoss","Li","Sharon","Kiki","Sofia","Renata","Maria"}
+	lastNames = {"Yamauchi","Iwata","Swindler","Badd","Blood","Huang","Tsung","Chung","Wu","Nelson","Lewis","Adnan","Bruce","James","Calhoun","Roberts","McGill","Jane","Victory","Adams","Strong","Schwartz","Foreign","Brute","King","Brutal","Johnson","Torrid","Luxury","Benjamin","Swizzle"}
 	
 	return firstNames[math.random(1,tablelength(firstNames))] .. ' ' .. lastNames[math.random(1,tablelength(lastNames))]
 	
 end
 
 function generateRassler()
-	return love.graphics.newImage( "rassler" .. math.random(1,rasslers) .. ".png" )
+	return math.random(1,rasslers)
 end
 
 function tablelength(T)
