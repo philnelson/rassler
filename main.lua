@@ -1,5 +1,11 @@
 CURRENT_SCREEN = "start"
 WORK_MODES = {"Go all out","Play it safe","Be lazy"}
+ACTIVITIES = {}
+ACTIVITIES[0] = {name = "Take drugs", health = 0, money = -60, max_health = -5, bumps = 5}
+ACTIVITIES[1] = {name = "Go out", health = -5, money = -40, max_health = -1, bumps = 0}
+ACTIVITIES[2] = {name = "Work out", health = 5, money = -40, max_health = 0, bumps = 0}
+ACTIVITIES[3] = {name = "Stay in", health = 1, money = -5, max_health = 0, bumps = 0}
+ACTIVITIES[4] = {name = "Retire", health = 0, money = 0, max_health = 0, bumps = 0}
 require 'Tserial'
 
 function love.load()
@@ -18,8 +24,8 @@ function love.load()
 	
 	rasslers = 19
 	
-	player = {name = generateRasslerName(), image = generateRassler(), nickname = generateRasslerNickname(), skill = 1, health = 100, bumps = 100, popularity = 0, matches = 0, age = 20, money = 0}
-	opponent = {name = generateRasslerName(), image = generateRassler(), nickname = generateRasslerNickname(), skill = 1, health = 100, bumps = 100, matches = 0, age = 20, popularity = 0, matches = 0,  money = 0}
+	player = {name = generateRasslerName(), image = generateRassler(), nickname = generateRasslerNickname(), skill = 1, health = 90, max_health = 100, bumps = 100, popularity = 0, matches = 0, age = 20, money = 10}
+	opponent = {name = generateRasslerName(), image = generateRassler(), nickname = generateRasslerNickname(), skill = 1, health = 90, bumps = 100, matches = 0, age = 20, popularity = 0, matches = 0,  money = 10}
 	
 	match_history = {}
 	
@@ -52,6 +58,10 @@ function love.draw()
 	
 	if CURRENT_SCREEN == "debug" then
 		drawDebugScreen()
+	end
+	
+	if CURRENT_SCREEN == "road" then
+		drawRoadScreen()
 	end
 end
 
@@ -190,10 +200,13 @@ function drawResultScreen()
 	love.graphics.print("Capacity: " .. match.capacity, 200,280)
 	love.graphics.print("Attendence: " .. match.attendence, 200,320)
 	
-	love.graphics.print("You worked a match against " .. opponent.name, 40,420)
-	love.graphics.print("You took " .. match.bumps .. " bumps.", 40,450)
-	love.graphics.print("You got " .. match.newFans .. " new fans.", 40,480)
-	love.graphics.print("You were paid $" .. match.pay, 40,530)
+	love.graphics.print("You worked a match against " .. opponent.name, 40,380)
+	love.graphics.print("You took " .. match.bumps .. " bumps.", 40,410)
+	love.graphics.print("You got " .. match.newFans .. " new fans.", 40,440)
+	love.graphics.print("You were paid ", 40,470)
+	love.graphics.setColor(255,255,0)
+	love.graphics.print("$" .. match.pay, 260,470)
+	love.graphics.setColor(0,0,0)
 	
 	love.graphics.print("Press N To Drive On Down The Road", 100,560)
 	
@@ -205,38 +218,103 @@ function drawMatchScreen()
 	
 	love.graphics.setColor(0,0,0)
 	
-	love.graphics.print("The " .. match.venue, 200,200)
-	love.graphics.print("In " .. match.place, 200,240)
-	love.graphics.print("Capacity: " .. match.capacity, 200,280)
-	love.graphics.print("Attendence: " .. match.attendence, 200,320)
+	love.graphics.print("The " .. match.venue, 200,100)
+	love.graphics.print("In " .. match.place, 200,130)
+	love.graphics.print("Capacity: " .. match.capacity, 200,160)
+	love.graphics.print("Attendence: " .. match.attendence, 200,190)
 	
 	if current_work_mode == 0 then
 		love.graphics.setColor(255,255,255)
-		love.graphics.rectangle( "fill", 190, 430, 420, 30 )
+		love.graphics.rectangle( "fill", 190, 320, 420, 30 )
 		love.graphics.setColor(0,0,0)
 	end
 	
 	if current_work_mode == 1 then
 		love.graphics.setColor(255,255,255)
-		love.graphics.rectangle( "fill", 190, 470, 420, 30 )
+		love.graphics.rectangle( "fill", 190, 350, 420, 30 )
 		love.graphics.setColor(0,0,0)
 	end
 	
 	if current_work_mode == 2 then
 		love.graphics.setColor(255,255,255)
-		love.graphics.rectangle( "fill", 190, 510, 420, 30 )
+		love.graphics.rectangle( "fill", 190, 380, 420, 30 )
 		love.graphics.setColor(0,0,0)
 	end
 	
-	love.graphics.print("How do you want to work?", 200,400)
-	love.graphics.print("Go all out (-5 bumps)", 200,440)
-	
-	
-	love.graphics.print("Play it safe (-3 bumps)", 200,480)
-	love.graphics.print("Bare minimum (-1 bumps)", 200,520)
+	love.graphics.print("How do you want to work?", 200,300)
+	love.graphics.print("Go all out (-5 bumps)", 200,330)
+	love.graphics.print("Play it safe (-3 bumps)", 200,360)
+	love.graphics.print("Bare minimum (-1 bumps)", 200,390)
 	
 	love.graphics.print("Up/Down: Select option. Enter: Start", 100,560)
 	
+end
+
+function drawRoadScreen()
+	drawHUD()
+	
+	love.graphics.setColor(0,0,0)
+	love.graphics.print("You're in " .. match.place .. ",", 30,130)
+	love.graphics.print("and have some free time.", 30,160)
+	
+	if current_activity_choice == 0 then
+		love.graphics.setColor(255,255,255)
+		love.graphics.rectangle( "fill", 20, 230, 420, 30 )
+		love.graphics.setColor(0,0,0)
+	end
+	
+	if current_activity_choice == 1 then
+		love.graphics.setColor(255,255,255)
+		love.graphics.rectangle( "fill", 20, 295, 420, 30 )
+		love.graphics.setColor(0,0,0)
+	end
+	
+	if current_activity_choice == 2 then
+		love.graphics.setColor(255,255,255)
+		love.graphics.rectangle( "fill", 20, 355, 420, 30 )
+		love.graphics.setColor(0,0,0)
+	end
+	
+	if current_activity_choice == 3 then
+		love.graphics.setColor(255,255,255)
+		love.graphics.rectangle( "fill", 20, 415, 420, 30 )
+		love.graphics.setColor(0,0,0)
+	end
+	
+	if current_activity_choice == 4 then
+		love.graphics.setColor(255,255,255)
+		love.graphics.rectangle( "fill", 20, 475, 420, 30 )
+		love.graphics.setColor(0,0,0)
+	end
+	
+	love.graphics.print("What do you want to do?", 30,200)
+		
+	love.graphics.print("Take drugs - $60", 30,240)
+	love.graphics.setColor(255,255,255)
+	love.graphics.print("+5 bumps next match, -1 max health", 30,275)
+	
+	love.graphics.setColor(0,0,0)
+	love.graphics.print("Go out - $40", 30,305)
+	love.graphics.setColor(255,255,255)
+	love.graphics.print("-5 health", 30,335)
+	
+	love.graphics.setColor(0,0,0)
+	love.graphics.print("Work out - $40", 30,365)
+	love.graphics.setColor(255,255,255)
+	love.graphics.print("+5 health", 30,395)
+	
+	love.graphics.setColor(0,0,0)
+	love.graphics.print("Stay in - $5", 30,425)
+	love.graphics.setColor(255,255,255)
+	love.graphics.print("No effect", 30,455)
+	
+	love.graphics.setColor(0,0,0)
+	love.graphics.print("Retire", 30,485)
+	love.graphics.setColor(255,255,255)
+	love.graphics.print("End your career", 30,515)
+
+	
+	love.graphics.print("Up/Down: Select option. Enter: Start", 100,560)
 end
 
 function drawStartScreen()
@@ -278,7 +356,7 @@ function drawStartScreen()
 	love.graphics.draw(player_image, 40, 290)
 end
 
-function love.keyreleased(key)
+function love.keypressed(key)
 	
 	if key == "d" then
 		CURRENT_SCREEN = "debug"
@@ -350,7 +428,7 @@ function love.keyreleased(key)
 		   
 		   player.age = player.age + (1/30)
 		   
-		   player.health = player.health - ((match.bumps*0.5))
+		   player.health = player.health - ((match.bumps*1))
 		   
 		   CURRENT_SCREEN = "result"
 	   end
@@ -358,16 +436,51 @@ function love.keyreleased(key)
    
    if CURRENT_SCREEN == "result" then
 	    if key == "n" then
-			 match = makeMatch()
-			CURRENT_SCREEN = "card"
+			current_activity_choice = 0
+			CURRENT_SCREEN = "road"
 		end
+   end
+   
+   if CURRENT_SCREEN == "road" then
+	    if key == "return" then
+			
+			if ACTIVITIES[current_activity_choice].money < player.money then
+				player.health = player.health + ACTIVITIES[current_activity_choice].health
+				player.max_health = player.max_health + ACTIVITIES[current_activity_choice].max_health
+				player.money = player.money + ACTIVITIES[current_activity_choice].money
+				player.bumps = player.bumps + ACTIVITIES[current_activity_choice].bumps
+			
+				match = makeMatch()
+				CURRENT_SCREEN = "card"
+			end
+			
+		end
+		
+ 	   if key == "up" then
+		   
+ 		   if current_activity_choice >= 1 then
+ 			   current_activity_choice = current_activity_choice - 1
+ 		   else
+ 			   current_activity_choice = 4
+ 		   end
+ 	   end
+	   
+ 	   if key == "down" then
+		   
+ 		   if current_activity_choice <= 3 then
+ 			   current_activity_choice = current_activity_choice + 1
+ 		   else
+ 			   current_activity_choice = 0
+ 		   end
+ 	   end
+		
    end
    
 end
 
 function generateRasslerNickname()
 	
-	nicknameStart = {"Wild","Flying","Violent","High","Wicked","Pretty","Demonic","Unstoppable","Incredible","Immortal","Rowdy","Screaming","Cruel","Crazy","Angry","Mad","Masked","Grand","Esteemed","Elegant","Smooth-talkin'","Lunatic","Miracle"}
+	nicknameStart = {"Wild","Flying","Violent","High","Wicked","Pretty","Demonic","Unstoppable","Dancing","Incredible","Immortal","Rowdy","Screaming","Cruel","Crazy","Angry","Mad","Masked","Grand","Esteemed","Elegant","Smooth-talkin'","Lunatic","Miracle", "Canadian"}
 	nicknameEnding = {"Amazon","Goddess","Astronaut","Grappler","Crippler","Stranger","Person","Cowboy","Flyer","Doctor","Wizard","Dervish","Shiek","Gremlin","Wrestler","Beekeeper","Element","Leader","Snake-charmer"}
 	
 	return nicknameStart[math.random(1,tablelength(nicknameStart))] .. ' ' .. nicknameEnding[math.random(1,tablelength(nicknameEnding))]
