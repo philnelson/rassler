@@ -24,7 +24,9 @@ function love.load()
 	
 	rasslers = 19
 	
-	player = {name = generateRasslerName(), image = generateRassler(), nickname = generateRasslerNickname(), skill = 1, health = 90, max_health = 100, bumps = 100, popularity = 0, matches = 0, age = 20, money = 10}
+	max_health = math.random(70,100)
+	
+	player = {name = generateRasslerName(), image = generateRassler(), nickname = generateRasslerNickname(), skill = 1, health = math.random(70,max_health), max_health = max_health, bumps = math.random(100,130), popularity = 0, matches = 0, age = 20, money = math.random(5,35)}
 	opponent = {name = generateRasslerName(), image = generateRassler(), nickname = generateRasslerNickname(), skill = 1, health = 90, bumps = 100, matches = 0, age = 20, popularity = 0, matches = 0,  money = 10}
 	
 	match_history = {}
@@ -330,13 +332,15 @@ function drawStartScreen()
 	love.graphics.print("we came up with for you.", 20, 160)
 	
 	love.graphics.setFont(statFont)
-	love.graphics.print("Health", 230, 380)
-	love.graphics.print("Bumps", 400, 380)
-	love.graphics.print("Fans", 600, 380)
+	love.graphics.print("Health", 200, 380)
+	love.graphics.print("Max Health", 340, 380)
+	love.graphics.print("Bumps", 600, 380)
+	love.graphics.print("Money", 680, 380)
 	
 	love.graphics.print(player.health, 230, 400)
-	love.graphics.print(player.bumps, 400, 400)
-	love.graphics.print(player.popularity, 600, 400)
+	love.graphics.print(player.max_health, 400, 400)
+	love.graphics.print(player.bumps, 600, 400)
+	love.graphics.print(player.money, 680, 400)
 	love.graphics.setFont(mainFont)
 	
 	love.graphics.setColor(255,255,255,255)
@@ -366,6 +370,12 @@ function love.keypressed(key)
 	   player.name = generateRasslerName()
 	   player.nickname = generateRasslerNickname()
 	   player.image = generateRassler()
+	   
+	   
+	   player.max_health = math.random(70,100)
+	   player.health = math.random(70,max_health)
+	   player.bumps = math.random(100,140)
+	   player.playermoney = math.random(5,35)
 	   
 	   opponent.name = generateRasslerName()
 	   opponent.nickname = generateRasslerNickname()
@@ -481,7 +491,7 @@ end
 function generateRasslerNickname()
 	
 	nicknameStart = {"Wild","Flying","Violent","High","Wicked","Pretty","Demonic","Unstoppable","Dancing","Incredible","Immortal","Rowdy","Screaming","Cruel","Crazy","Angry","Mad","Masked","Grand","Esteemed","Elegant","Smooth-talkin'","Lunatic","Miracle", "Canadian"}
-	nicknameEnding = {"Amazon","Goddess","Astronaut","Grappler","Crippler","Stranger","Person","Cowboy","Flyer","Doctor","Wizard","Dervish","Shiek","Gremlin","Wrestler","Beekeeper","Element","Leader","Snake-charmer"}
+	nicknameEnding = {"Amazon","Goddess","Astronaut","Grappler","Crippler","Stranger","Person","Cowboy","Flyer","Doctor","Wizard","Dervish","Shiek","Gremlin","Wrestler","Beekeeper","Element","Leader","Snake-charmer","Giant","Freak","Star"}
 	
 	return nicknameStart[math.random(1,tablelength(nicknameStart))] .. ' ' .. nicknameEnding[math.random(1,tablelength(nicknameEnding))]
 end
