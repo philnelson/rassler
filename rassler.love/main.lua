@@ -1,12 +1,11 @@
 CURRENT_SCREEN = "start"
 WORK_MODES = {"Go all out","Play it safe","Be lazy"}
 ACTIVITIES = {}
-ACTIVITIES[0] = {name = "Take drugs", health = 0, money = -60, max_health = -5, bumps = 5}
-ACTIVITIES[1] = {name = "Go out", health = -5, money = -40, max_health = -1, bumps = 0}
-ACTIVITIES[2] = {name = "Work out", health = 5, money = -40, max_health = 0, bumps = 0}
-ACTIVITIES[3] = {name = "Stay in", health = 1, money = -5, max_health = 0, bumps = 0}
-ACTIVITIES[4] = {name = "Retire", health = 0, money = 0, max_health = 0, bumps = 0}
-require 'Tserial'
+ACTIVITIES[0] = {name = "Take drugs", health = 3, money = 40, max_health = -1, popularity = 0,bumps = 0}
+ACTIVITIES[1] = {name = "Hit the town", health = -5, money = 40, max_health = -1, popularity = 5, bumps = 0}
+ACTIVITIES[2] = {name = "Hit the gym", health = 5, money = 60, max_health = 0, popularity = 0,bumps = 0}
+ACTIVITIES[3] = {name = "Go to sleep", health = 1, money = 5, max_health = 0, popularity = 0,bumps = 0}
+ACTIVITIES[4] = {name = "Retire", health = 0, money = 0, max_health = 0, popularity = 0,bumps = 0}
 
 function love.load()
 	math.randomseed( tonumber(tostring(os.time()):reverse():sub(1,6)) )
@@ -26,14 +25,14 @@ function love.load()
 	
 	max_health = math.random(70,100)
 	
-	player = {name = generateRasslerName(), image = generateRassler(), nickname = generateRasslerNickname(), skill = 1, health = math.random(70,max_health), max_health = max_health, bumps = math.random(100,130), popularity = 0, matches = 0, age = 20, money = math.random(5,35)}
+	player = {name = generateRasslerName(), image = generateRassler(), nickname = generateRasslerNickname(), skill = 1, health = math.random(70,max_health), max_health = max_health, bumps = math.random(100,130), popularity = 0, matches = 0, age = 20, money = math.random(50,100)}
 	opponent = {name = generateRasslerName(), image = generateRassler(), nickname = generateRasslerNickname(), skill = 1, health = 90, bumps = 100, matches = 0, age = 20, popularity = 0, matches = 0,  money = 10}
 	
 	match_history = {}
 	
 	match = {}
 	
-	menuMusic:setVolume(0.5)
+	menuMusic:setVolume(0.0)
 	menuMusic:play()
 end
 
@@ -64,6 +63,10 @@ function love.draw()
 	
 	if CURRENT_SCREEN == "road" then
 		drawRoadScreen()
+	end
+	
+	if CURRENT_SCREEN == "gameOver" then
+		drawEndScreen()
 	end
 end
 
@@ -115,10 +118,10 @@ function drawCardScreen()
 	love.graphics.print("'The " .. opponent.nickname .. "'", 40, 300)
 	love.graphics.setFont(mainFont);
 	
-	love.graphics.print("You will be paid $" .. match.pay, 100, 470)
+	love.graphics.print("You will be paid $" .. math.floor(match.pay), 100, 470)
 	love.graphics.print("You're booked to lose.", 80, 510)
 	love.graphics.setColor(255,255,255,255)
-	love.graphics.print("Press N To Get Ready", 40, 550)
+	love.graphics.print("Press Enter To Get Ready", 40, 550)
 	love.graphics.setColor(0,0,0,255)
 	
 end
@@ -127,37 +130,40 @@ function makeMatch()
 	
 	newOpponent = {name = generateRasslerName(), image = generateRassler(), nickname = generateRasslerNickname(), skill  = math.random(1,(player.skill*1.2)), health = math.random(40,100), bumps = math.random(1,100), matches = 0, age = math.random(1,100), popularity = math.random(1,player.popularity*1.2), matches = 0,  money = 0}
 	
+	promoter = generatePromoter()
 	venue = generateVenue()
 	place = generatePlace()
-	capacity = generateCapacity()
-	attendence = math.random(1,capacity)
+	capacity = math.floor(generateCapacity(promoter))
+	attendence = math.floor(math.random(1,capacity) * (0.1*promoter.skill))
 	
 	opponent = newOpponent
 	
 	return {venue=venue, place = place, capacity = capacity, attendence = attendence, opponent = newOpponent, pay = math.floor(0.1*attendence)*(player.skill) }
 end
 
-function simulateMatch(player,opponent)
+function generatePromoter()
+	newPromoter = {name = generateRasslerName(), skill = math.random(1,10), payouts = math.random(1,3)}
 	
+	return newPromoter
 end
 
 function generatePlace()
 	
-	firstNames = {"Twoson","Onett","Threed","Popcorn","Santa Claus","Niles","Buchanan","Big City"}
-	lastNames = {"MI","IL","IA","OH","WI","MN"}
+	firstNames = {"Twoson","Onett","Threed","Popcorn","Santa Claus","Niles","Buchanan","Big City", "Musketoon","Parts Unknown", "Chicago","Serling","Kanto"}
+	lastNames = {"MI","IL","IA","OH","WI","MN", "AK","ON","TX","NV"}
 	
 	return firstNames[math.random(1,tablelength(firstNames))] .. ', ' .. lastNames[math.random(1,tablelength(lastNames))]
 	
 end
 
-function generateCapacity()
-	return math.random(20,1000)
+function generateCapacity(promoter)
+	return math.random(20,1000)*(0.1*promoter.skill)
 end
 
 function generateVenue()
 	
-	firstNames = {"Cow","Wrestle","Sports","Town","Little"}
-	lastNames = {"Center","Dome","Barn","Bar","Club","Auditorium"}
+	firstNames = {"Cow","Wrestle","Sports","Town","Little","War Memorial","Reed","Serling","Local","Owl Creek","Smoky Hallows"}
+	lastNames = {"Center","Dome","Barn","Bar","Club","Auditorium","Hall","Assembly","Church","Fairground"}
 	
 	return firstNames[math.random(1,tablelength(firstNames))] .. ' ' .. lastNames[math.random(1,tablelength(lastNames))]
 	
@@ -171,22 +177,22 @@ function drawHUD()
 	love.graphics.setColor(255,255,255)
 	love.graphics.setFont(statFont)
 	love.graphics.print("Health", 10, 10)
-	love.graphics.print(player.health, 10, 40)
+	love.graphics.print(math.floor(player.health), 10, 40)
 	
-	love.graphics.print("Bumps", 120, 10)
-	love.graphics.print(player.bumps, 120, 40)
+	love.graphics.print("Max Health", 120, 10)
+	love.graphics.print(math.floor(player.max_health), 120, 40)
 	
-	love.graphics.print("Age", 220, 10)
-	love.graphics.print(math.floor(player.age), 220, 40)
+	love.graphics.print("Age", 300, 10)
+	love.graphics.print(math.floor(player.age), 300, 40)
 	
-	love.graphics.print("Skill", 300, 10)
-	love.graphics.print(player.skill, 300, 40)
+	love.graphics.print("Skill", 380, 10)
+	love.graphics.print(math.floor(player.skill), 380, 40)
 	
-	love.graphics.print("Fans", 420, 10)
-	love.graphics.print(player.popularity, 420, 40)
+	love.graphics.print("Fans", 500, 10)
+	love.graphics.print(math.floor(player.popularity), 500, 40)
 	
-	love.graphics.print("$", 560, 10)
-	love.graphics.print(player.money, 560, 40)
+	love.graphics.print("$", 640, 10)
+	love.graphics.print(math.floor(player.money), 640, 40)
 	
 	love.graphics.setColor(255,255,255)
 	
@@ -203,14 +209,22 @@ function drawResultScreen()
 	love.graphics.print("Attendence: " .. match.attendence, 200,320)
 	
 	love.graphics.print("You worked a match against " .. opponent.name, 40,380)
-	love.graphics.print("You took " .. match.bumps .. " bumps.", 40,410)
-	love.graphics.print("You got " .. match.newFans .. " new fans.", 40,440)
+	
+	if(match.bumps >= 6) then
+		love.graphics.print("You got pretty beat up.", 40,410)
+		elseif (match.bumps >= 3) then
+			love.graphics.print("You're a little worse for wear.", 40,410)
+		else
+			love.graphics.print("You're a bit banged up.", 40,410)
+		end
+		
+	love.graphics.print("You got " .. math.floor(match.newFans) .. " new fans.", 40,440)
 	love.graphics.print("You were paid ", 40,470)
 	love.graphics.setColor(255,255,0)
-	love.graphics.print("$" .. match.pay, 260,470)
+	love.graphics.print("$" .. math.floor(match.pay), 260,470)
 	love.graphics.setColor(0,0,0)
 	
-	love.graphics.print("Press N To Drive On Down The Road", 100,560)
+	love.graphics.print("Press Enter To Drive On Down The Road", 100,560)
 	
 end
 
@@ -227,28 +241,28 @@ function drawMatchScreen()
 	
 	if current_work_mode == 0 then
 		love.graphics.setColor(255,255,255)
-		love.graphics.rectangle( "fill", 190, 320, 420, 30 )
+		love.graphics.rectangle( "fill", 70, 320, 175, 30 )
 		love.graphics.setColor(0,0,0)
 	end
 	
 	if current_work_mode == 1 then
 		love.graphics.setColor(255,255,255)
-		love.graphics.rectangle( "fill", 190, 350, 420, 30 )
+		love.graphics.rectangle( "fill", 70, 350, 210, 30 )
 		love.graphics.setColor(0,0,0)
 	end
 	
 	if current_work_mode == 2 then
 		love.graphics.setColor(255,255,255)
-		love.graphics.rectangle( "fill", 190, 380, 420, 30 )
+		love.graphics.rectangle( "fill", 70, 380, 210, 30 )
 		love.graphics.setColor(0,0,0)
 	end
 	
-	love.graphics.print("How do you want to work?", 200,300)
-	love.graphics.print("Go all out (-5 bumps)", 200,330)
-	love.graphics.print("Play it safe (-3 bumps)", 200,360)
-	love.graphics.print("Bare minimum (-1 bumps)", 200,390)
+	love.graphics.print("How do you want to work?", 80,280)
+	love.graphics.print("Go all out (Most Damage, Most Fans)", 80,330)
+	love.graphics.print("Play it safe (Moderate Damage, More Fans)", 80,360)
+	love.graphics.print("Take it easy (Light Damage, Fewer Fans)", 80,390)
 	
-	love.graphics.print("Up/Down: Select option. Enter: Start", 100,560)
+	love.graphics.print("Up/Down: Select option. Enter: Do It", 100,560)
 	
 end
 
@@ -291,17 +305,17 @@ function drawRoadScreen()
 	
 	love.graphics.print("What do you want to do?", 30,200)
 		
-	love.graphics.print("Take drugs - $60", 30,240)
+	love.graphics.print("Take pain meds - $40", 30,240)
 	love.graphics.setColor(255,255,255)
-	love.graphics.print("+5 bumps next match, -1 max health", 30,275)
+	love.graphics.print("+3 Health, -1 Max Health", 30,275)
 	
 	love.graphics.setColor(0,0,0)
-	love.graphics.print("Go out - $40", 30,305)
+	love.graphics.print("Hit the town - $40", 30,305)
 	love.graphics.setColor(255,255,255)
-	love.graphics.print("-5 health", 30,335)
+	love.graphics.print("-4 health, gain some fans", 30,335)
 	
 	love.graphics.setColor(0,0,0)
-	love.graphics.print("Work out - $40", 30,365)
+	love.graphics.print("Hit the gym - $60", 30,365)
 	love.graphics.setColor(255,255,255)
 	love.graphics.print("+5 health", 30,395)
 	
@@ -316,7 +330,17 @@ function drawRoadScreen()
 	love.graphics.print("End your career", 30,515)
 
 	
-	love.graphics.print("Up/Down: Select option. Enter: Start", 100,560)
+	love.graphics.print("Up/Down: Select option. Enter: Do It", 100,560)
+end
+
+function drawEndScreen()
+	drawHUD()
+	
+	love.graphics.setColor(0,0,0)
+	love.graphics.print("Looks like it's time to hang up the 'ol boots.", 20, 80)
+	love.graphics.print("You had a heck of a run, kid.", 20, 120)
+	love.graphics.print("Game Over", 20, 160)
+	
 end
 
 function drawStartScreen()
@@ -333,13 +357,13 @@ function drawStartScreen()
 	
 	love.graphics.setFont(statFont)
 	love.graphics.print("Health", 200, 380)
-	love.graphics.print("Max Health", 340, 380)
-	love.graphics.print("Bumps", 600, 380)
+	love.graphics.print("Max Health", 420, 380)
+	--love.graphics.print("Bumps", 540, 380)
 	love.graphics.print("Money", 680, 380)
 	
-	love.graphics.print(player.health, 230, 400)
-	love.graphics.print(player.max_health, 400, 400)
-	love.graphics.print(player.bumps, 600, 400)
+	love.graphics.print(player.health, 200, 400)
+	love.graphics.print(player.max_health, 420, 400)
+	--love.graphics.print(player.bumps, 540, 400)
 	love.graphics.print(player.money, 680, 400)
 	love.graphics.setFont(mainFont)
 	
@@ -360,137 +384,142 @@ function drawStartScreen()
 	love.graphics.draw(player_image, 40, 290)
 end
 
-function love.keypressed(key)
+function love.keyreleased(key)
+	
+	handleKeyPress(key, CURRENT_SCREEN)
+   
+end
+
+function handleKeyPress(key, currentScreen)
 	
 	if key == "d" then
 		CURRENT_SCREEN = "debug"
 	end
 	
-   if key == " " then
-	   player.name = generateRasslerName()
-	   player.nickname = generateRasslerNickname()
-	   player.image = generateRassler()
+	if key == "return" then
+		if currentScreen == "start" then
+			match = makeMatch()
+			current_work_mode = 0
+			CURRENT_SCREEN = "card"
+		end
+		if currentScreen == "card" then
+			CURRENT_SCREEN = "match"
+		end
+		
+	    if currentScreen == "match" then
+	 	   match.bumps = 1
 	   
+	 	   if current_work_mode == 0 then
+	 		  match.bumps = 6
+	 	   end
 	   
-	   player.max_health = math.random(70,100)
-	   player.health = math.random(70,max_health)
-	   player.bumps = math.random(100,140)
-	   player.playermoney = math.random(5,35)
+	 	   if current_work_mode == 1 then
+	 		   match.bumps = 3
+	 	   end
+		   
+	 	   if current_work_mode == 2 then
+	 		   match.bumps = 1
+	 	   end
+		   
+		   match.newFans = match.attendence / (((current_work_mode+(match.bumps*.01))+1)*4)
 	   
-	   opponent.name = generateRasslerName()
-	   opponent.nickname = generateRasslerNickname()
-	   opponent.image = generateRassler()
-   end
-   
-   if CURRENT_SCREEN == "start" then
-	   if key == "return" then
-		   match = makeMatch()
-		   current_work_mode = 0
-		   CURRENT_SCREEN = "card"
-	   end
-   end
-   
-   if CURRENT_SCREEN == "card" then
-	   if key == "n" then
-		   CURRENT_SCREEN = "match"
-	   end
-   end
-   
-   if CURRENT_SCREEN == "match" then
-	   if key == "up" then
-		   
-		   if current_work_mode >= 1 then
-			   current_work_mode = current_work_mode - 1
-		   else
-			   current_work_mode = 2
-		   end
-	   end
+	 	   player.money = player.money+match.pay
+	 	   player.popularity = player.popularity+match.newFans
+	 	   player.bumps = player.bumps-match.bumps
 	   
-	   if key == "down" then
-		   
-		   if current_work_mode <= 1 then
-			   current_work_mode = current_work_mode + 1
-		   else
-			   current_work_mode = 0
-		   end
-	   end
-   end
-   
-   if CURRENT_SCREEN == "match" then
-	   if key == "return" then
-		   
-		   match.bumps = 1
-		   match.newFans = math.floor(match.attendence / ((current_work_mode+1)*4))
-		   
-		   if current_work_mode == 0 then
-			  match.bumps = 5 
-		   end
-		   
-		   if current_work_mode == 1 then
-			   match.bumps = 3
-		   end   
-		   
-		   player.money = player.money+match.pay
-		   player.popularity = player.popularity+match.newFans
-		   player.bumps = player.bumps-match.bumps
-		   
-		   player.skill = player.skill + 1
-		   
-		   player.age = player.age + (1/30)
-		   
-		   player.health = player.health - ((match.bumps*1))
-		   
-		   CURRENT_SCREEN = "result"
-	   end
-   end
-   
-   if CURRENT_SCREEN == "result" then
-	    if key == "n" then
+	 	   player.skill = player.skill + (match.bumps/10)
+	   
+	 	   player.age = player.age + (0.033)
+	   
+	 	   player.health = player.health - ((match.bumps*1))
+	   
+	 	   CURRENT_SCREEN = "result"
+	    end
+		
+		if currentScreen == "result" then
 			current_activity_choice = 0
 			CURRENT_SCREEN = "road"
 		end
-   end
-   
-   if CURRENT_SCREEN == "road" then
-	    if key == "return" then
+		
+	    if currentScreen == "road" then
 			
-			if ACTIVITIES[current_activity_choice].money < player.money then
-				player.health = player.health + ACTIVITIES[current_activity_choice].health
-				player.max_health = player.max_health + ACTIVITIES[current_activity_choice].max_health
-				player.money = player.money + ACTIVITIES[current_activity_choice].money
-				player.bumps = player.bumps + ACTIVITIES[current_activity_choice].bumps
-			
-				match = makeMatch()
-				CURRENT_SCREEN = "card"
+	 		if (player.money - ACTIVITIES[current_activity_choice].money) > 0 then
+	 			player.health = player.health + ACTIVITIES[current_activity_choice].health
+	 			player.max_health = player.max_health + ACTIVITIES[current_activity_choice].max_health
+	 			player.money = player.money - ACTIVITIES[current_activity_choice].money
+	 			player.popularity = player.popularity + ACTIVITIES[current_activity_choice].popularity
+	 			--player.bumps = player.bumps + ACTIVITIES[current_activity_choice].bumps
+		
+	 			match = makeMatch()
+				
+				if current_activity_choice == 4 then
+	 				CURRENT_SCREEN = "gameOver"
+				else
+					CURRENT_SCREEN = "card"
+				end
 			end
-			
+		
+	 	end
+	end
+	
+	if key == "space" then
+		if currentScreen == "start" then
+			player.name = generateRasslerName()
+			player.nickname = generateRasslerNickname()
+			player.image = generateRassler()
+
+
+			player.max_health = math.random(70,100)
+			player.health = math.random(70,player.max_health)
+			player.bumps = math.random(100,140)
+			player.money = math.random(50,100)
+
+			opponent.name = generateRasslerName()
+			opponent.nickname = generateRasslerNickname()
+			opponent.image = generateRassler()
+		end
+	end
+	
+	if key == "up" then
+		if currentScreen == "match" then
+			if current_work_mode >= 1 then
+				current_work_mode = current_work_mode - 1
+			else
+				current_work_mode = 2
+			end
 		end
 		
- 	   if key == "up" then
-		   
- 		   if current_activity_choice >= 1 then
- 			   current_activity_choice = current_activity_choice - 1
- 		   else
- 			   current_activity_choice = 4
- 		   end
- 	   end
-	   
- 	   if key == "down" then
-		   
- 		   if current_activity_choice <= 3 then
- 			   current_activity_choice = current_activity_choice + 1
- 		   else
- 			   current_activity_choice = 0
- 		   end
- 	   end
+		if currentScreen == "road" then
+  		   if current_activity_choice >= 1 then
+  			   current_activity_choice = current_activity_choice - 1
+  		   else
+  			   current_activity_choice = 4
+  		   end
+		end
+	end
+
+	if key == "down" then
+		if currentScreen == "match" then
+			if current_work_mode <= 1 then
+				current_work_mode = current_work_mode + 1
+			else
+				current_work_mode = 0
+			end
+		end
 		
-   end
-   
+		if currentScreen == "road" then
+  		   if current_activity_choice <= 3 then
+  			   current_activity_choice = current_activity_choice + 1
+  		   else
+  			   current_activity_choice = 0
+  		   end	
+		end
+	end
 end
 
 function generateRasslerNickname()
 	
-	nicknameStart = {"Wild","Flying","Violent","High","Wicked","Pretty","Demonic","Unstoppable","Dancing","Incredible","Immortal","Rowdy","Screaming","Cruel","Crazy","Angry","Mad","Masked","Grand","Esteemed","Elegant","Smooth-talkin'","Lunatic","Miracle", "Canadian"}
+	nicknameStart = {"Wild","Scary","Flying","Super","Violent","High","Wicked","Pretty","Genetic","Demonic","Unstoppable","Dancing","Incredible","Immortal","Rowdy","Screaming","Cruel","Crazy","Angry","Mad","Masked","Grand","Esteemed","Elegant","Smooth-talkin'","Lunatic","Miracle", "Canadian"}
 	nicknameEnding = {"Amazon","Goddess","Astronaut","Grappler","Crippler","Stranger","Person","Cowboy","Flyer","Doctor","Wizard","Dervish","Shiek","Gremlin","Wrestler","Beekeeper","Element","Leader","Snake-charmer","Giant","Freak","Star"}
 	
 	return nicknameStart[math.random(1,tablelength(nicknameStart))] .. ' ' .. nicknameEnding[math.random(1,tablelength(nicknameEnding))]
@@ -498,8 +527,8 @@ end
 
 function generateRasslerName()
 	
-	firstNames = {"Hiroshi","Satoru","J.P.","Serena","Venus","Prince","Ed","Kareen","Momar","Linda","Elizabeth","General","Bruce","Ricky","Big","Tracey","Rick","Ric","Rik","Jake","Bobby","Rob","Butch","Randy","Steve","Chris","Thomas","Jack","Greg","Tony","Sherri","Tina","Blaze","Tonya","Hoss","Li","Sharon","Kiki","Sofia","Renata","Maria"}
-	lastNames = {"Yamauchi","Iwata","Swindler","Badd","Blood","Huang","Tsung","Chung","Wu","Nelson","Lewis","Adnan","Bruce","James","Calhoun","Roberts","McGill","Jane","Victory","Adams","Strong","Schwartz","Foreign","Brute","King","Brutal","Johnson","Torrid","Luxury","Benjamin","Swizzle"}
+	firstNames = {"Jim","Giant","Hiroshi","Satoru","J.P.","Serena","Venus","Prince","Ed","Kareen","Momar","Linda","Elizabeth","General","Bruce","Ricky","Big","Tracey","Rick","Ric","Rik","Jake","Bobby","Rob","Butch","Randy","Steve","Chris","Thomas","Jack","Greg","Tony","Vikas","Buzz","Sherri","Tina","Blaze","Tonya","Hoss","Li","Sharon","Kiki","Sofia","Renata","Maria"}
+	lastNames = {"Yamauchi","Iwata","Swindler","Badd","Blood","Huang","Tsung","Chung","Wu","Nelson","Lewis","Adnan","Bruce","James","Calhoun","Roberts","McGill","Jane","Victory","Adams","Strong","Schwartz","Foreign","Brute","King","Brutal","Johnson","Torrid","Luxury","Benjamin","Swizzle","Sawyer","Kratos"}
 	
 	return firstNames[math.random(1,tablelength(firstNames))] .. ' ' .. lastNames[math.random(1,tablelength(lastNames))]
 	
