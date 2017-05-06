@@ -13,9 +13,9 @@ WORK_MODES[3] = {name = "Take It Easy", health = 6, popularity = 6}
 
 MATCHES = {}
 
-CURRENT_MATCH = 0
-
 function love.load()
+	--love.filesystem.load( "table.save-1.0.lua" )()
+
 	window_width = 800
 	window_height = 600
 	math.randomseed( tonumber(tostring(os.time()):reverse():sub(1,6)) )
@@ -37,6 +37,46 @@ function love.load()
 	player_starting_max_health = math.random(70,100)
 	player_starting_health = math.random(70,player_starting_max_health)
 	player_starting_money = math.random(50,100)
+
+	nicknamesFirst = {}
+	nicknameFirstFile = io.open("nickFirst.txt")
+	if nicknameFirstFile then
+	    for line in nicknameFirstFile:lines() do
+	        nicknamesFirst[#nicknamesFirst+1] = line
+	    end
+	else
+		print("no file")
+	end
+
+	nicknamesLast = {}
+	nicknameLastFile = io.open("nickLast.txt")
+	if nicknameLastFile then
+	    for line in nicknameLastFile:lines() do
+	        nicknamesLast[#nicknamesLast+1] = line
+	    end
+	else
+
+	end
+
+	namesFirst = {}
+	namesFirstFile = io.open("namesFirst.txt")
+	if namesFirstFile then
+	    for line in namesFirstFile:lines() do
+	        namesFirst[#namesFirst+1] = line
+	    end
+	else
+
+	end
+
+	namesLast = {}
+	namesLastFile = io.open("namesLast.txt")
+	if namesLastFile then
+	    for line in namesLastFile:lines() do
+	        namesLast[#namesLast+1] = line
+	    end
+	else
+
+	end
 	
 	player = {name = generateRasslerName(), image = generateRassler(), nickname = generateRasslerNickname(), skill = 1, health = player_starting_health, max_health = player_starting_max_health, popularity = 0, matches = 0, age = 20, money = player_starting_money, money_spent = 0, money_earned = 0}
 	opponent = {name = generateRasslerName(), image = generateRassler(), nickname = generateRasslerNickname(), skill = 1, health = 90, matches = 0, age = 20, popularity = 0, matches = 0,  money = 10}
@@ -44,6 +84,10 @@ function love.load()
 	match_history = {}
 	
 	match = {}
+end
+
+function savePlayerStatus()
+	--assert( table.save( MATCHES, "save1.lua" ) == nil )
 end
 
 function love.update(dt)
@@ -91,26 +135,7 @@ function love.draw()
 end
 
 function drawDebugScreen()
-	is_file = love.filesystem.exists( "world.ras" )
 	
-	if is_file == false then
-		file, errorstr = love.filesystem.newFile( "world.ras", "a" )
-	
-		newOpponent = {name = generateRasslerName(), image = generateRassler(), nickname = generateRasslerNickname(), skill  = math.random(1,(player.skill*1.2)), health = math.random(40,100), matches = 0, age = math.random(1,100), popularity = math.random(1,player.popularity*1.2), matches = 0,  money = 0}
-	
-		success, errormsg = love.filesystem.append( "world.ras", Tserial.pack(newOpponent) )
-	
-		if success == true then
-			love.graphics.setFont(secondaryFont);
-			realdir = love.filesystem.getRealDirectory( "world.ras" )
-			love.graphics.print("Saved new world file", 0, 0)
-		
-		else
-		
-		end
-	else
-		love.graphics.print("Loaded world file", 0, 0)
-	end
 end
 
 function drawCardScreen()
@@ -128,7 +153,7 @@ function drawCardScreen()
 
 	love.graphics.setColor(0,0,0)
 	love.graphics.setFont(secondaryFont);
-	love.graphics.print("'The " .. player.nickname .. "'", 200, 160)
+	love.graphics.print("'" .. player.nickname .. "'", 200, 160)
 	love.graphics.setFont(mainFont);
 	love.graphics.print(player.name, 200, 190)
 	love.graphics.setColor(255,255,255)
@@ -143,7 +168,7 @@ function drawCardScreen()
 	
 	love.graphics.setColor(0,0,0)
 	love.graphics.setFont(secondaryFont);
-	love.graphics.print("'The " .. opponent.nickname .. "'", 200, 340)
+	love.graphics.print("'" .. opponent.nickname .. "'", 200, 340)
 	love.graphics.setFont(mainFont);
 	love.graphics.print(opponent.name, 200, 370)
 	love.graphics.setColor(255,255,255)
@@ -181,8 +206,10 @@ function makeMatch()
 	if player_pay < 20 then
 		player_pay = 20
 	end
-	
-	return {venue=venue, capacity = capacity, attendence = attendence, opponent = newOpponent, pay = player_pay }
+
+	match = {venue=venue, capacity = capacity, attendence = attendence, opponent = newOpponent, pay = player_pay }
+
+	return match
 end
 
 function generateCapacity()
@@ -213,9 +240,6 @@ function drawHUD()
 	
 	love.graphics.print("SKILL", 250, 10)
 	love.graphics.print(math.floor(player.skill), 250, 40)
-
-	love.graphics.print("SPIRIT", 350, 10)
-	love.graphics.print(math.floor(player.skill), 350, 40)
 
 	love.graphics.print("DAY", 470, 10)
 	love.graphics.print(math.floor(day), 470, 40)
@@ -248,8 +272,10 @@ function drawResultScreen()
 	love.graphics.print("Attendence: " .. match.attendence, 200,320)
 	
 	love.graphics.print("You wrestled against " .. opponent.name, 40,380)
-	love.graphics.print("Your health changed by ".. MATCHES[CURRENT_MATCH].health - MATCHES[CURRENT_MATCH-1].health, 40,410)
-	love.graphics.print("You were paid $" ..  math.floor(match.pay), 40,470)
+	love.graphics.print("Your health changed by ".. MATCHES[#MATCHES].health - MATCHES[#MATCHES-1].health, 40,410)
+	love.graphics.print("You fans changed by ".. MATCHES[#MATCHES].popularity - MATCHES[#MATCHES-1].popularity, 40,440)
+
+	love.graphics.print("You were paid $" ..  math.floor(match.pay), 40,480)
 	
 	love.graphics.setFont(mainFont)
 	love.graphics.setColor(255,255,255)
@@ -285,10 +311,10 @@ function drawMatchScreen()
 		love.graphics.setColor(0,0,0)
 	end
 	
-	love.graphics.print("How hard do you want to wrestle today?", 80,280)
-	love.graphics.print("Go All Out " .. WORK_MODES[1].health, 80,330)
-	love.graphics.print("Normal " .. WORK_MODES[2].health, 80,360)
-	love.graphics.print("Take It Easy " .. WORK_MODES[3].health, 80,390)
+	love.graphics.print("How do you want to wrestle this match?", 80,280)
+	love.graphics.print("Go All Out (---health, +++fans)", 80,330)
+	love.graphics.print("Normal (--health, ++fans)", 80,360)
+	love.graphics.print("Take It Easy (-health, +fans)", 80,390)
 	
 	love.graphics.print("Up/Down: Select option. Enter: Do It", 100,560)
 	
@@ -334,27 +360,27 @@ function drawRoadScreen()
 		
 	love.graphics.print("Take pain meds - $40", 30,240)
 	love.graphics.setColor(255,255,255)
-	love.graphics.print(ACTIVITIES[1].health .. " Health, " .. ACTIVITIES[1].max_health .. " Max Health", 30,275)
+	love.graphics.print("  ++ Health, --Max Health", 30,275)
 	
 	love.graphics.setColor(0,0,0)
 	love.graphics.print("Hit the town - $40", 30,305)
 	love.graphics.setColor(255,255,255)
-	love.graphics.print(ACTIVITIES[2].health .. " Health, " .. ACTIVITIES[2].max_health .. " Max Health",30,335)
+	love.graphics.print("  --Health, -Max Health, +Popularity",30,335)
 	
 	love.graphics.setColor(0,0,0)
 	love.graphics.print("Hit the gym - $60", 30,365)
 	love.graphics.setColor(255,255,255)
-	love.graphics.print(ACTIVITIES[3].health .. " Health, " .. ACTIVITIES[3].max_health .. " Max Health", 30,395)
+	love.graphics.print("  ++Health", 30,395)
 	
 	love.graphics.setColor(0,0,0)
 	love.graphics.print("Stay in - $5", 30,425)
 	love.graphics.setColor(255,255,255)
-	love.graphics.print(ACTIVITIES[4].health .. " Health, " .. ACTIVITIES[4].max_health .. " Max Health", 30,455)
+	love.graphics.print("  +Health", 30,455)
 	
 	love.graphics.setColor(0,0,0)
 	love.graphics.print("Retire", 30,485)
 	love.graphics.setColor(255,255,255)
-	love.graphics.print("End your career", 30,515)
+	love.graphics.print("  End your career", 30,515)
 
 	
 	love.graphics.print("Up/Down: Select option. Enter: Do It", 100,560)
@@ -446,7 +472,8 @@ function drawNewDayScreen()
 
 	love.graphics.setColor(0,0,0)
 	love.graphics.print("It's a new day, yes it is.", 20, 80)
-	love.graphics.print("You regained 1 health from sleep.", 20, 120)
+	love.graphics.print("You regained " .. MATCHES[#MATCHES].health - MATCHES[#MATCHES-1].health .. " health from sleep.", 20, 120)
+	love.graphics.print("Your next match is against " .. opponent.name, 20, 150)
 
 	love.graphics.setFont(mainFont)
 	love.graphics.setColor(255,255,255)
@@ -482,7 +509,7 @@ function drawStartScreen()
 	
 	love.graphics.print(player.name, 230, 320)
 	love.graphics.setFont(secondaryFont);
-	love.graphics.print("'The " .. player.nickname .. "'", 170, 290)
+	love.graphics.print("'" .. player.nickname .. "'", 170, 290)
 	
 	love.graphics.setFont(mainFont)
 	love.graphics.setColor(255,255,255,255)
@@ -506,9 +533,9 @@ function handleKeyPress(key, currentScreen)
 	
 	if key == "return" then
 		if currentScreen == "start" then
-			MATCHES[0] = {health = player.health, popularity = player.popularity, skill = player.skill, age = player.age, money = player.money}
-
 			match = makeMatch()
+
+			MATCHES[#MATCHES+1] = {screen = currentScreen, health = player.health, popularity = player.popularity, skill = player.skill, age = player.age, money = player.money, match = match}
 			current_work_mode = 1
 			matchBell:setVolume(0.1)
 			matchBell:play()
@@ -520,8 +547,8 @@ function handleKeyPress(key, currentScreen)
 		
 	    if currentScreen == "match" then
 
-			health_change = math.random(1,WORK_MODES[current_work_mode].health)
-			popularity_change = math.random(1,WORK_MODES[current_work_mode].popularity)*player.skill/2
+			health_change = math.floor(math.random(1,WORK_MODES[current_work_mode].health))
+			popularity_change = math.floor(math.random(1,WORK_MODES[current_work_mode].popularity)*player.skill/2)
 
 			player.health = player.health - health_change
 			player.popularity = player.popularity + popularity_change
@@ -533,9 +560,9 @@ function handleKeyPress(key, currentScreen)
 
 			player.age = player.age + (0.033)
 
-			CURRENT_MATCH = CURRENT_MATCH + 1
+			MATCHES[#MATCHES+1] = {screen = currentScreen, health = player.health, popularity = player.popularity, skill = player.skill, age = player.age, money = player.money, match = match}
 
-			MATCHES[#MATCHES+1] = {health = player.health, popularity = player.popularity, skill = player.skill, age = player.age, money = player.money}
+			savePlayerStatus()
 
 			CURRENT_SCREEN = "result"
 	    end
@@ -555,6 +582,8 @@ function handleKeyPress(key, currentScreen)
 	 			player.money_spent = player.money_spent + ACTIVITIES[current_activity_choice].money
 
 	 			player.popularity = player.popularity + ACTIVITIES[current_activity_choice].popularity
+
+	 			MATCHES[#MATCHES+1] = {screen = currentScreen, health = player.health, popularity = player.popularity, skill = player.skill, age = player.age, money = player.money, match = match}
 		
 	 			match = makeMatch()
 				
@@ -569,13 +598,6 @@ function handleKeyPress(key, currentScreen)
 	 	end
 
 	 	if currentScreen == "newday" then
-	 		-- heal the player in the night +HEALTH
-			healed = math.floor(math.random(1,player.max_health/10))
-			if (player.health + healed) > player.max_health then
-				player.health = player.max_health
-			else
-				player.health = player.health + healed
-			end
 			
 			current_activity_choice = 1
 	 		CURRENT_SCREEN = "prematch"
@@ -593,8 +615,6 @@ function handleKeyPress(key, currentScreen)
 	 			player.money = player.money - ACTIVITIES[current_activity_choice].money
 	 			player.money_spent = player.money_spent + ACTIVITIES[current_activity_choice].money
 	 			player.popularity = player.popularity + ACTIVITIES[current_activity_choice].popularity
-		
-	 			match = makeMatch()
 				
 				if current_activity_choice == 5 then
 	 				CURRENT_SCREEN = "gameOver"
@@ -677,19 +697,38 @@ function handleKeyPress(key, currentScreen)
 end
 
 function generateRasslerNickname()
-	
-	nicknameStart = {"Wild","Scary","Flying","Super","Violent","High","Wicked","Pretty","Genetic","Demonic","Unstoppable","Dancing","Incredible","Immortal","Rowdy","Screaming","Cruel","Crazy","Angry","Mad","Masked","Grand","Esteemed","Elegant","Smooth-talkin'","Lunatic","Miracle", "Canadian"}
-	nicknameEnding = {"Amazon","Goddess","Astronaut","Grappler","Crippler","Stranger","Person","Cowboy","Flyer","Doctor","Wizard","Dervish","Shiek","Gremlin","Wrestler","Beekeeper","Element","Leader","Snake-charmer","Giant","Freak","Star"}
-	
-	return nicknameStart[math.random(1,tablelength(nicknameStart))] .. ' ' .. nicknameEnding[math.random(1,tablelength(nicknameEnding))]
+
+	name_style = math.random(1,4)
+
+	nickfirst = math.random(1,tablelength(nicknamesFirst))
+		nicklast = nickfirst
+
+		while nickfirst == nicklast do
+			nicklast = math.random(1,tablelength(nicknamesLast))
+		end
+
+	if name_style == 1 then
+		nickname = nicknamesFirst[nickfirst] .. ' ' .. nicknamesLast[nicklast]
+	end
+
+	if name_style == 2 then
+		nickname = "The " .. nicknamesFirst[nickfirst] .. ' ' .. nicknamesLast[nicklast]
+	end
+
+	if name_style == 3 then
+		nickname = nicknamesFirst[nickfirst]
+	end
+
+	if name_style == 4 then
+		nickname = "The " .. nicknamesFirst[nickfirst]
+	end
+
+	return nickname
 end
 
 function generateRasslerName()
 	
-	firstNames = {"Jim","Giant","Hiroshi","Satoru","J.P.","Serena","Venus","Prince","Ed","Kareen","Momar","Linda","Elizabeth","General","Bruce","Ricky","Big","Tracey","Rick","Ric","Rik","Jake","Bobby","Rob","Butch","Randy","Steve","Chris","Thomas","Jack","Greg","Tony","Vikas","Buzz","Sherri","Tina","Blaze","Tonya","Hoss","Li","Sharon","Kiki","Sofia","Renata","Maria"}
-	lastNames = {"Strong","Saturn","Yamauchi","Iwata","Swindler","Badd","Blood","Huang","Tsung","Chung","Wu","Nelson","Lewis","Adnan","Bruce","James","Calhoun","Roberts","McGill","Jane","Victory","Adams","Strong","Schwartz","Foreign","Brute","King","Brutal","Johnson","Torrid","Luxury","Benjamin","Swizzle","Sawyer","Kratos"}
-	
-	return firstNames[math.random(1,tablelength(firstNames))] .. ' ' .. lastNames[math.random(1,tablelength(lastNames))]
+	return namesFirst[math.random(1,tablelength(namesFirst))] .. ' ' .. namesLast[math.random(1,tablelength(namesLast))]
 	
 end
 
