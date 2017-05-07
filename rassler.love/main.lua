@@ -6,6 +6,13 @@ ACTIVITIES[3] = {name = "Hit the gym", health = 6, money = 60, max_health = 0, p
 ACTIVITIES[4] = {name = "Stay in", health = 1, money = 5, max_health = 0, popularity = 0}
 ACTIVITIES[5] = {name = "Retire", health = 0, money = 0, max_health = 0, popularity = 0}
 
+PRE_ACTIVITIES = {}
+PRE_ACTIVITIES[1] = {name = "Take drugs", health = 6, money = 40, max_health = -6, popularity = 0}
+PRE_ACTIVITIES[2] = {name = "Hit the town", health = -6, money = 40, max_health = -1, popularity = 5}
+PRE_ACTIVITIES[3] = {name = "Hit the gym", health = 6, money = 60, max_health = 0, popularity = 0}
+PRE_ACTIVITIES[4] = {name = "Stay in", health = 1, money = 5, max_health = 0, popularity = 0}
+PRE_ACTIVITIES[5] = {name = "Retire", health = 0, money = 0, max_health = 0, popularity = 0}
+
 WORK_MODES = {}
 WORK_MODES[1] = {name = "Go All Out", health = 20, popularity = 20}
 WORK_MODES[2] = {name = "Normal", health = 12, popularity = 12}
@@ -33,15 +40,11 @@ function love.load()
 	love.graphics.setFont(mainFont);
 	
 	rasslers = 19
-	
-	player_starting_max_health = math.random(70,100)
-	player_starting_health = math.random(70,player_starting_max_health)
-	player_starting_money = math.random(50,100)
 
 	nicknamesFirst = {}
-	nicknameFirstFile = io.open("nickFirst.txt")
+	nicknameFirstFile = "nickFirst.txt"
 	if nicknameFirstFile then
-	    for line in nicknameFirstFile:lines() do
+	    for line in love.filesystem.lines(nicknameFirstFile) do
 	        nicknamesFirst[#nicknamesFirst+1] = line
 	    end
 	else
@@ -49,41 +52,65 @@ function love.load()
 	end
 
 	nicknamesLast = {}
-	nicknameLastFile = io.open("nickLast.txt")
+	nicknameLastFile = "nickLast.txt"
 	if nicknameLastFile then
-	    for line in nicknameLastFile:lines() do
+	    for line in love.filesystem.lines(nicknameLastFile) do
 	        nicknamesLast[#nicknamesLast+1] = line
 	    end
 	else
-
+		print("no file")
 	end
 
 	namesFirst = {}
-	namesFirstFile = io.open("namesFirst.txt")
+	namesFirstFile = "namesFirst.txt"
 	if namesFirstFile then
-	    for line in namesFirstFile:lines() do
+	    for line in love.filesystem.lines(namesFirstFile) do
 	        namesFirst[#namesFirst+1] = line
 	    end
 	else
-
+		print("no file")
 	end
 
 	namesLast = {}
-	namesLastFile = io.open("namesLast.txt")
+	namesLastFile = "namesLast.txt"
 	if namesLastFile then
-	    for line in namesLastFile:lines() do
+	    for line in love.filesystem.lines(namesLastFile) do
 	        namesLast[#namesLast+1] = line
 	    end
 	else
-
+		print("no file")
 	end
 	
-	player = {name = generateRasslerName(), image = generateRassler(), nickname = generateRasslerNickname(), skill = 1, health = player_starting_health, max_health = player_starting_max_health, popularity = 0, matches = 0, age = 20, money = player_starting_money, money_spent = 0, money_earned = 0}
-	opponent = {name = generateRasslerName(), image = generateRassler(), nickname = generateRasslerNickname(), skill = 1, health = 90, matches = 0, age = 20, popularity = 0, matches = 0,  money = 10}
+	player = generateRassler()
+	opponent = generateRassler()
 	
 	match_history = {}
 	
 	match = {}
+end
+
+function generateRassler()
+
+	local rassler = {}
+
+	player_starting_max_health = math.random(70,100)
+	player_starting_health = math.random(70,player_starting_max_health)
+	player_starting_money = math.random(50,100)
+
+	rassler['name'] = generateRasslerName()
+	rassler['image'] = math.random(1,rasslers)
+	rassler['nickname'] = generateRasslerNickname()
+	rassler['skill'] = math.random(1,3)
+	rassler['health'] = player_starting_health
+	rassler['max_health'] = player_starting_max_health
+	rassler['popularity'] = 0
+	rassler['matches'] = 0
+	rassler['age'] = 20
+	rassler['money'] = player_starting_money
+	rassler['money_spent'] = 0
+	rassler['money_earned'] = 0
+
+	return rassler
 end
 
 function savePlayerStatus()
@@ -193,8 +220,8 @@ end
 
 function makeMatch()
 	
-	newOpponent = {name = generateRasslerName(), image = generateRassler(), nickname = generateRasslerNickname(), skill  = math.random(1,(player.skill*1.2)), health = math.random(40,100), matches = 0, age = math.random(1,100), popularity = math.random(1,player.popularity*1.2), matches = 0,  money = 0}
-	
+	newOpponent = generateRassler()
+
 	venue = generateVenue()
 	capacity = math.floor(generateCapacity())
 	attendence = math.floor(math.random(capacity/10,capacity))
@@ -472,7 +499,7 @@ function drawNewDayScreen()
 
 	love.graphics.setColor(0,0,0)
 	love.graphics.print("It's a new day, yes it is.", 20, 80)
-	love.graphics.print("You regained " .. MATCHES[#MATCHES].health - MATCHES[#MATCHES-1].health .. " health from sleep.", 20, 120)
+	love.graphics.print("Your health changed " .. MATCHES[#MATCHES].health - MATCHES[#MATCHES-1].health .. " overnight.", 20, 120)
 	love.graphics.print("Your next match is against " .. opponent.name, 20, 150)
 
 	love.graphics.setFont(mainFont)
@@ -494,11 +521,13 @@ function drawStartScreen()
 	
 	love.graphics.setFont(statFont)
 	love.graphics.print("Health", 200, 380)
-	love.graphics.print("Max Health", 420, 380)
+	love.graphics.print("Max Health", 320, 380)
+	love.graphics.print("Skill", 520, 380)
 	love.graphics.print("Money", 680, 380)
 	
 	love.graphics.print(player.health, 200, 400)
-	love.graphics.print(player.max_health, 420, 400)
+	love.graphics.print(player.max_health, 320, 400)
+	love.graphics.print(player.skill, 520, 400)
 	love.graphics.print(player.money, 680, 400)
 	love.graphics.setFont(mainFont)
 	
@@ -535,13 +564,14 @@ function handleKeyPress(key, currentScreen)
 		if currentScreen == "start" then
 			match = makeMatch()
 
-			MATCHES[#MATCHES+1] = {screen = currentScreen, health = player.health, popularity = player.popularity, skill = player.skill, age = player.age, money = player.money, match = match}
 			current_work_mode = 1
 			matchBell:setVolume(0.1)
 			matchBell:play()
 			CURRENT_SCREEN = "card"
 		end
 		if currentScreen == "card" then
+			MATCHES[#MATCHES+1] = {screen = currentScreen, health = player.health, popularity = player.popularity, skill = player.skill, age = player.age, money = player.money, match = match}
+			
 			CURRENT_SCREEN = "match"
 		end
 		
@@ -628,18 +658,7 @@ function handleKeyPress(key, currentScreen)
 	
 	if key == "space" then
 		if currentScreen == "start" then
-			player.name = generateRasslerName()
-			player.nickname = generateRasslerNickname()
-			player.image = generateRassler()
-
-
-			player.max_health = math.random(70,100)
-			player.health = math.random(70,player.max_health)
-			player.money = math.random(50,100)
-
-			opponent.name = generateRasslerName()
-			opponent.nickname = generateRasslerNickname()
-			opponent.image = generateRassler()
+			player = generateRassler()
 		end
 	end
 	
@@ -730,10 +749,6 @@ function generateRasslerName()
 	
 	return namesFirst[math.random(1,tablelength(namesFirst))] .. ' ' .. namesLast[math.random(1,tablelength(namesLast))]
 	
-end
-
-function generateRassler()
-	return math.random(1,rasslers)
 end
 
 function tablelength(T)

@@ -34,3 +34,4 @@ Swizzle
 Sawyer
 Kratos
 Williams
+Bean
