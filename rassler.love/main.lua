@@ -20,6 +20,10 @@ WORK_MODES[3] = {name = "Take It Easy", health = 6, popularity = 6}
 
 MATCHES = {}
 
+RANDOM_EVENTS = {}
+RANDOM_EVENTS[1] = {title="Street Fight", description="You got attacked by a drunken 'fan'. One of their friends hit you from behind before you even had a chance. You lost.", health = -10, money = 0, max_health = -2, popularity = -10}
+RANDOM_EVENTS[2] = {title="Workout Groove", description="You're in a groove with your workout. Your maximum health is slightly increased.", health = 1, money = 0, max_health = 1, popularity = 0}
+
 function love.load()
 	--love.filesystem.load( "table.save-1.0.lua" )()
 
@@ -30,6 +34,7 @@ function love.load()
 	love.graphics.setDefaultFilter("nearest", "nearest", 0)
 	mainFont = love.graphics.newFont("prstart.ttf",30)
 	secondaryFont = love.graphics.newFont("prstart.ttf",20)
+	headlineFont = love.graphics.newFont("prstart.ttf",26)
 	statFont = love.graphics.newFont("prstart.ttf",16)
 	
 	menuMusic = love.audio.newSource("menu.ogg")
@@ -109,6 +114,7 @@ function generateRassler()
 	rassler['money'] = player_starting_money
 	rassler['money_spent'] = 0
 	rassler['money_earned'] = 0
+	rassler['active_effects'] = {}
 
 	return rassler
 end
@@ -265,8 +271,8 @@ function drawHUD()
 	love.graphics.print("AGE", 180, 10)
 	love.graphics.print(math.floor(player.age), 180, 40)
 	
-	love.graphics.print("SKILL", 250, 10)
-	love.graphics.print(math.floor(player.skill), 250, 40)
+	love.graphics.print("SKILL", 300, 10)
+	love.graphics.print(math.floor(player.skill), 300, 40)
 
 	love.graphics.print("DAY", 470, 10)
 	love.graphics.print(math.floor(day), 470, 40)
@@ -292,17 +298,48 @@ end
 function drawResultScreen()
 	drawHUD()
 	
-	love.graphics.setColor(0,0,0)
-	
-	love.graphics.print("The " .. match.venue, 200,200)
-	love.graphics.print("Capacity: " .. match.capacity, 200,280)
-	love.graphics.print("Attendence: " .. match.attendence, 200,320)
-	
-	love.graphics.print("You wrestled against " .. opponent.name, 40,380)
-	love.graphics.print("Your health changed by ".. MATCHES[#MATCHES].health - MATCHES[#MATCHES-1].health, 40,410)
-	love.graphics.print("You fans changed by ".. MATCHES[#MATCHES].popularity - MATCHES[#MATCHES-1].popularity, 40,440)
+	love.graphics.setColor(240,240,240)
 
-	love.graphics.print("You were paid $" ..  math.floor(match.pay), 40,480)
+	love.graphics.rectangle( "fill", 0, 0, window_width, window_height-60 )
+
+	love.graphics.setColor(220,220,220)
+
+	love.graphics.rectangle( "fill", 0, 30, window_width, 50 )
+
+	love.graphics.setColor(0,0,0)
+
+	love.graphics.setFont(statFont)
+
+	love.graphics.print("The Guide to Grappling", 10, 10)
+	love.graphics.print("50 Cents / 75 Canadian", 440, 10)
+	
+	love.graphics.setFont(mainFont)
+
+	love.graphics.print("The Wrestling News", 140, 45)
+
+	love.graphics.setFont(headlineFont)
+	love.graphics.print("Matches Draw " .. match.attendence .. " Fans", 20, 100)
+	love.graphics.print("To " .. match.venue, 20,130)
+	--love.graphics.print("Capacity: " .. match.capacity, 200,280)
+	--love.graphics.print("Attendence: " .. match.attendence, 200,320)
+	
+	love.graphics.setColor(255,255,255)
+	love.graphics.draw(opponent_image,50, 250, 0, 0.8, 0.8)
+	love.graphics.setColor(0,0,0)
+
+	love.graphics.setFont(secondaryFont)
+	love.graphics.print(opponent.name, 40,380)
+	love.graphics.print("defeats", 40,420)
+	love.graphics.print(player.name , 40,460)
+
+	love.graphics.setColor(255,255,255)
+	love.graphics.draw(player_image,400, 250, 0, 0.8, 0.8)
+
+	love.graphics.setColor(0,0,0)
+	love.graphics.print("Health: ".. MATCHES[#MATCHES].health - MATCHES[#MATCHES-1].health, 400,380)
+	love.graphics.print("Fans: " .. MATCHES[#MATCHES].popularity - MATCHES[#MATCHES-1].popularity, 400,420)
+
+	love.graphics.print("You were paid $" ..  math.floor(match.pay), 400,460)
 	
 	love.graphics.setFont(mainFont)
 	love.graphics.setColor(255,255,255)
@@ -328,7 +365,7 @@ function drawMatchScreen()
 	
 	if current_work_mode == 2 then
 		love.graphics.setColor(255,255,255)
-		love.graphics.rectangle( "fill", 70, 350, 210, 30 )
+		love.graphics.rectangle( "fill", 70, 350, 110, 30 )
 		love.graphics.setColor(0,0,0)
 	end
 	
@@ -570,7 +607,7 @@ function handleKeyPress(key, currentScreen)
 			CURRENT_SCREEN = "card"
 		end
 		if currentScreen == "card" then
-			MATCHES[#MATCHES+1] = {screen = currentScreen, health = player.health, popularity = player.popularity, skill = player.skill, age = player.age, money = player.money, match = match}
+			MATCHES[#MATCHES+1] = {screen = currentScreen, health = player.health, popularity = player.popularity, skill = player.skill, age = player.age, money = player.money, match = match, opponent=opponent}
 			
 			CURRENT_SCREEN = "match"
 		end
@@ -590,7 +627,7 @@ function handleKeyPress(key, currentScreen)
 
 			player.age = player.age + (0.033)
 
-			MATCHES[#MATCHES+1] = {screen = currentScreen, health = player.health, popularity = player.popularity, skill = player.skill, age = player.age, money = player.money, match = match}
+			MATCHES[#MATCHES+1] = {screen = currentScreen, health = player.health, popularity = player.popularity, skill = player.skill, age = player.age, money = player.money, match = match, opponent=opponent}
 
 			savePlayerStatus()
 
@@ -620,8 +657,12 @@ function handleKeyPress(key, currentScreen)
 				if current_activity_choice == 5 then
 	 				CURRENT_SCREEN = "gameOver"
 				else
-					day = day+1
-					CURRENT_SCREEN = "newday"
+					if randomOutsideEventRoll() then
+						random_event = getRandomOutsideEvent()
+					else
+						day = day+1
+						CURRENT_SCREEN = "newday"
+					end
 				end
 			end
 		
@@ -749,6 +790,22 @@ function generateRasslerName()
 	
 	return namesFirst[math.random(1,tablelength(namesFirst))] .. ' ' .. namesLast[math.random(1,tablelength(namesLast))]
 	
+end
+
+function randomOutsideEventRoll()
+	roll = math.floor(math.random(1,20))
+
+	if roll > 17 then
+		return true
+	end
+
+	return false
+end
+
+function getRandomOutsideEvent()
+	event = math.floor(math.random(1,#RANDOM_EVENTS))
+
+	return RANDOM_EVENTS[event]
 end
 
 function tablelength(T)
