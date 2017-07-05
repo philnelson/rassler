@@ -15,8 +15,8 @@ PRE_ACTIVITIES[5] = {name = "Retire", health = 0, money = 0, max_health = 0, pop
 
 WORK_MODES = {}
 WORK_MODES[1] = {name = "Go All Out", health = 20, popularity = 20}
-WORK_MODES[2] = {name = "Normal", health = 12, popularity = 12}
-WORK_MODES[3] = {name = "Take It Easy", health = 6, popularity = 6}
+WORK_MODES[2] = {name = "Normal", health = 12, popularity = 6}
+WORK_MODES[3] = {name = "Take It Easy", health = 6, popularity = 4}
 
 MATCHES = {}
 
@@ -376,9 +376,9 @@ function drawMatchScreen()
 	end
 	
 	love.graphics.print("How do you want to wrestle this match?", 80,280)
-	love.graphics.print("Go All Out (---health, +++fans)", 80,330)
-	love.graphics.print("Normal (--health, ++fans)", 80,360)
-	love.graphics.print("Take It Easy (-health, +fans)", 80,390)
+	love.graphics.print("Go All Out (Lose 1-" .. WORK_MODES[1].health .. " health, Gain most fans)", 80,330)
+	love.graphics.print("Normal (Lose 1-" .. WORK_MODES[2].health .. " health, Gain some fans)", 80,360)
+	love.graphics.print("Take It Easy (Lose 1-" .. WORK_MODES[3].health .. " , Gain fewest fans)", 80,390)
 	
 	love.graphics.print("Up/Down: Select option. Enter: Do It", 100,560)
 	
@@ -424,27 +424,27 @@ function drawRoadScreen()
 		
 	love.graphics.print("Take pain meds - $40", 30,240)
 	love.graphics.setColor(255,255,255)
-	love.graphics.print("  ++ Health, --Max Health", 30,275)
+	love.graphics.print(ACTIVITIES[1].health .. " Health, " .. ACTIVITIES[1].max_health .. " Max Health", 30,275)
 	
 	love.graphics.setColor(0,0,0)
 	love.graphics.print("Hit the town - $40", 30,305)
 	love.graphics.setColor(255,255,255)
-	love.graphics.print("  --Health, -Max Health, +Popularity",30,335)
+	love.graphics.print(ACTIVITIES[2].health .. " health, gain ".. ACTIVITIES[2].popularity .. " fans", 30,335)
 	
 	love.graphics.setColor(0,0,0)
 	love.graphics.print("Hit the gym - $60", 30,365)
 	love.graphics.setColor(255,255,255)
-	love.graphics.print("  ++Health", 30,395)
+	love.graphics.print(ACTIVITIES[3].health .. " health", 30,395)
 	
 	love.graphics.setColor(0,0,0)
 	love.graphics.print("Stay in - $5", 30,425)
 	love.graphics.setColor(255,255,255)
-	love.graphics.print("  +Health", 30,455)
+	love.graphics.print("No effect", 30,455)
 	
 	love.graphics.setColor(0,0,0)
 	love.graphics.print("Retire", 30,485)
 	love.graphics.setColor(255,255,255)
-	love.graphics.print("  End your career", 30,515)
+	love.graphics.print("End your career", 30,515)
 
 	
 	love.graphics.print("Up/Down: Select option. Enter: Do It", 100,560)
@@ -495,12 +495,12 @@ function drawPrematchScreen()
 	love.graphics.setColor(0,0,0)
 	love.graphics.print("Hit the town - $40", 30,305)
 	love.graphics.setColor(255,255,255)
-	love.graphics.print("-4 health, gain some fans", 30,335)
+	love.graphics.print(ACTIVITIES[2].health .. " health, gain ".. ACTIVITIES[2].popularity .. " fans", 30,335)
 	
 	love.graphics.setColor(0,0,0)
 	love.graphics.print("Hit the gym - $60", 30,365)
 	love.graphics.setColor(255,255,255)
-	love.graphics.print("+5 health", 30,395)
+	love.graphics.print(ACTIVITIES[3].health .. " health", 30,395)
 	
 	love.graphics.setColor(0,0,0)
 	love.graphics.print("Stay in - $5", 30,425)
@@ -615,7 +615,43 @@ function handleKeyPress(key, currentScreen)
 	    if currentScreen == "match" then
 
 			health_change = math.floor(math.random(1,WORK_MODES[current_work_mode].health))
-			popularity_change = math.floor(math.random(1,WORK_MODES[current_work_mode].popularity)*player.skill/2)
+			--popularity_change = math.floor(math.random(1,WORK_MODES[current_work_mode].popularity)*player.skill/2)
+			popularity_change = 0
+			potential_fans = match.attendence
+
+			skill_bonus = 0
+
+			pop_bonus = 0
+
+			if player.skill > 10 then
+				skill_bonus = 1
+			elseif player.skill > 50 then
+				skill_bonus = 2
+			elseif player.skill > 100 then
+				skill_bonus = 3
+			end
+
+			if player.popularity > 100 then
+				pop_bonus = 1
+			elseif player.popularity > 200 then
+				pop_bonus = 2
+			elseif player.popularity > 300 then
+				pop_bonus = 3
+			end
+
+			print((math.random(1,20) + skill_bonus))
+			-- Check if we gain any fans at all, or if we shit the bed.
+			if (math.random(1,20) + skill_bonus) > 10 then
+				-- Gain fans
+
+				while popularity_change == 0 do
+					popularity_roll = math.random(1, WORK_MODES[current_work_mode].popularity) + pop_bonus
+
+					fake_fans = math.floor(potential_fans/100) * popularity_roll
+
+					popularity_change = fake_fans
+				end
+			end
 
 			player.health = player.health - health_change
 			player.popularity = player.popularity + popularity_change
