@@ -1,4 +1,4 @@
-CURRENT_SCREEN = "start"
+CURRENT_SCREEN = "title"
 ACTIVITIES = {}
 ACTIVITIES[1] = {name = "Take drugs", health = 6, money = 40, max_health = -6, popularity = 0}
 ACTIVITIES[2] = {name = "Hit the town", health = -6, money = 40, max_health = -1, popularity = 5}
@@ -37,8 +37,12 @@ function love.load()
 	headlineFont = love.graphics.newFont("prstart.ttf",26)
 	statFont = love.graphics.newFont("prstart.ttf",16)
 	
-	menuMusic = love.audio.newSource("menu.ogg")
+	bass_bg = love.audio.newSource("bass background.ogg")
 	matchBell = love.audio.newSource("sounds/matchBell.ogg")
+
+	bass_bg:setVolume(0.1)
+	--bass_bg:play()
+	bass_bg:setLooping(true)
 
 	day = 1
 	
@@ -130,6 +134,10 @@ end
 function love.draw()
 	love.graphics.setBackgroundColor(150,150,150)
 
+	if CURRENT_SCREEN == "title" then
+		drawTitleScreen()
+	end
+
 	if CURRENT_SCREEN == "start" then
 		drawStartScreen()
 	end
@@ -171,6 +179,40 @@ function drawDebugScreen()
 	
 end
 
+function drawTitleScreen()
+	drawStartScreen()
+
+	love.graphics.setColor(0,0,0,220)
+	love.graphics.rectangle("fill", 0, 0, window_width, window_height)
+	titleFont = love.graphics.newFont("prstart.ttf",100)
+
+	love.graphics.setFont(titleFont)
+	love.graphics.setColor(255,255,255)
+	centerText(100,"RASSLER", 210)
+	love.graphics.setColor(0,255,255)
+	centerText(100,"RASSLER", 205)
+	love.graphics.setColor(255,0,255)
+	centerText(100,"RASSLER", 200)
+
+	love.graphics.setFont(statFont)
+	love.graphics.setColor(255,255,255,255)
+	love.graphics.print("@philnelson", window_width-200, window_height-40)
+	love.graphics.print("philnelson.itch.io", 20, window_height-40)
+
+	love.graphics.setFont(mainFont)
+	love.graphics.setColor(255,255,255)
+	centerText(30,"PRESS START", 400)
+
+
+end
+
+function centerText(size, string, y)
+
+	x = (window_width/2) - ((string.len(string) * size)) / 2
+
+	love.graphics.print(string, x, y)
+end
+
 function drawCardScreen()
 	--love.graphics.setColor(222,222,222)
 	--love.graphics.rectangle("fill", 0, 0, window_width, window_height)
@@ -182,7 +224,7 @@ function drawCardScreen()
 	love.graphics.rectangle("fill", 0, 60, window_width, 60)
 
 	love.graphics.setColor(255,255,255)
-	love.graphics.print("TONIGHT ONLY", 210, 80)
+	centerText(30,"TONIGHT ONLY", 80)
 
 	love.graphics.setColor(0,0,0)
 	love.graphics.setFont(secondaryFont);
@@ -197,7 +239,7 @@ function drawCardScreen()
 	love.graphics.rectangle("fill", 0, 250, window_width, 50)
 
 	love.graphics.setColor(255,255,255)
-	love.graphics.print(".vs.", 330, 260)
+	centerText(30,".vs.", 260)
 	
 	love.graphics.setColor(0,0,0)
 	love.graphics.setFont(secondaryFont);
@@ -212,14 +254,14 @@ function drawCardScreen()
 	love.graphics.rectangle("fill", 0, 440, window_width, 65)
 	love.graphics.setColor(255,255,255,255)
 	love.graphics.setFont(secondaryFont);
-	love.graphics.print("At the " .. match.venue, 40, 455)
-	love.graphics.print("Capacity: " .. match.capacity, 40, 480)
+	centerText(20,"At the " .. match.venue, 450)
+	centerText(20,"Capacity: " .. match.capacity, 480)
 	
 	love.graphics.setColor(255,255,255,255)
 	love.graphics.setFont(mainFont);
-	love.graphics.print("You will be paid $" .. math.floor(match.pay), 100, 525)
+	centerText(30,"You will be paid $" .. math.floor(match.pay), 525)
 	--love.graphics.print("You're booked to lose.", 80, 510)
-	love.graphics.print("Press Enter To Prepare", 70, 565)
+	centerText(30,"Press Enter To Prepare", 565)
 	love.graphics.setColor(0,0,0,255)
 	
 end
@@ -315,7 +357,7 @@ function drawResultScreen()
 	
 	love.graphics.setFont(mainFont)
 
-	love.graphics.print("The Wrestling News", 140, 45)
+	centerText(30,"The Wrestling News", 45)
 
 	love.graphics.setFont(headlineFont)
 	love.graphics.print("Matches Draw " .. match.attendence .. " Fans", 20, 100)
@@ -569,8 +611,8 @@ function drawStartScreen()
 	love.graphics.setFont(mainFont)
 	
 	love.graphics.setColor(255,255,255,255)
-	love.graphics.print("Press Enter To Start", 40, 520)
-	love.graphics.print("Press Space To Reroll", 40, 560)
+	centerText(30,"Press Space: New Rassler",520)
+	centerText(30,"Press Enter: Start", 560)
 	love.graphics.setColor(0,0,0,255)
 	
 	love.graphics.print(player.name, 230, 320)
@@ -596,8 +638,15 @@ function handleKeyPress(key, currentScreen)
 	if key == "d" then
 		CURRENT_SCREEN = "debug"
 	end
+
+	if key == "p" then
+
+	end
 	
 	if key == "return" then
+		if currentScreen == "title" then
+			CURRENT_SCREEN = "start"
+		end
 		if currentScreen == "start" then
 			match = makeMatch()
 
@@ -678,8 +727,13 @@ function handleKeyPress(key, currentScreen)
 	    if currentScreen == "road" then
 			
 	 		if (player.money - ACTIVITIES[current_activity_choice].money) > 0 then
-	 			player.health = player.health + ACTIVITIES[current_activity_choice].health
 	 			player.max_health = player.max_health + ACTIVITIES[current_activity_choice].max_health
+
+	 			if (player.health + ACTIVITIES[current_activity_choice].health) > player.max_health then
+	 				player.health = player.health + ACTIVITIES[current_activity_choice].health
+	 			else
+	 				player.health = player.max_health
+	 			end
 	 			
 	 			player.money = player.money - ACTIVITIES[current_activity_choice].money
 	 			player.money_spent = player.money_spent + ACTIVITIES[current_activity_choice].money
