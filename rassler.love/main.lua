@@ -1,4 +1,5 @@
 CURRENT_SCREEN = "title"
+RETURN_TO = false
 ACTIVITIES = {}
 ACTIVITIES[1] = {name = "Take drugs", health = 6, money = 40, max_health = -6, popularity = 0}
 ACTIVITIES[2] = {name = "Hit the town", health = -6, money = 40, max_health = -1, popularity = 5}
@@ -165,6 +166,10 @@ function love.draw()
 	if CURRENT_SCREEN == "prematch" then
 		drawPrematchScreen()
 	end
+
+	if CURRENT_SCREEN == "gameOverConfirm" then
+		drawGameOverConfirmScreen()
+	end
 	
 	if CURRENT_SCREEN == "gameOver" then
 		drawEndScreen()
@@ -177,6 +182,16 @@ end
 
 function drawDebugScreen()
 	
+end
+
+function drawGameOverConfirmScreen()
+	love.graphics.setColor(0,0,0)
+	love.graphics.rectangle("fill", 0, 0, window_width, window_height)
+	love.graphics.setColor(255,255,255)
+	love.graphics.setFont(mainFont)
+	centerText(30,"REALLY RETIRE??", 200)
+	centerText(30,"Press Start: Retire", window_height-50)
+	centerText(30,"Press Esc: Don't Retire", window_height-100)
 end
 
 function drawTitleScreen()
@@ -644,6 +659,10 @@ function handleKeyPress(key, currentScreen)
 	end
 	
 	if key == "return" then
+		if currentScreen == "gameOverConfirm" then
+			CURRENT_SCREEN = "gameOver"
+		end
+
 		if currentScreen == "title" then
 			CURRENT_SCREEN = "start"
 		end
@@ -664,6 +683,7 @@ function handleKeyPress(key, currentScreen)
 	    if currentScreen == "match" then
 
 			health_change = math.floor(math.random(1,WORK_MODES[current_work_mode].health))
+			print(health_change)
 			--popularity_change = math.floor(math.random(1,WORK_MODES[current_work_mode].popularity)*player.skill/2)
 			popularity_change = 0
 			potential_fans = match.attendence
@@ -745,7 +765,8 @@ function handleKeyPress(key, currentScreen)
 	 			match = makeMatch()
 				
 				if current_activity_choice == 5 then
-	 				CURRENT_SCREEN = "gameOver"
+					RETURN_TO = "road"
+	 				CURRENT_SCREEN = "gameOverConfirm"
 				else
 					if randomOutsideEventRoll() then
 						random_event = getRandomOutsideEvent()
@@ -778,7 +799,8 @@ function handleKeyPress(key, currentScreen)
 	 			player.popularity = player.popularity + ACTIVITIES[current_activity_choice].popularity
 				
 				if current_activity_choice == 5 then
-	 				CURRENT_SCREEN = "gameOver"
+					RETURN_TO = "prematch"
+	 				CURRENT_SCREEN = "gameOverConfirm"
 				else
 					day = day+1
 					CURRENT_SCREEN = "card"
@@ -842,6 +864,12 @@ function handleKeyPress(key, currentScreen)
   		   else
   			   current_activity_choice = 1
   		   end	
+		end
+	end
+
+	if key == "escape" then
+		if currentScreen == "gameOverConfirm" then
+			CURRENT_SCREEN = RETURN_TO
 		end
 	end
 end
