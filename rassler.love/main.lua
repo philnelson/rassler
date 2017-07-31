@@ -1,17 +1,17 @@
 CURRENT_SCREEN = "title"
 RETURN_TO = false
 ACTIVITIES = {}
-ACTIVITIES[1] = {name = "Take drugs", health = 6, money = 40, max_health = -6, popularity = 0}
-ACTIVITIES[2] = {name = "Hit the town", health = -6, money = 40, max_health = -1, popularity = 5}
-ACTIVITIES[3] = {name = "Hit the gym", health = 6, money = 60, max_health = 0, popularity = 0}
-ACTIVITIES[4] = {name = "Stay in", health = 1, money = 5, max_health = 0, popularity = 0}
+ACTIVITIES[1] = {name = "Take drugs", health = 6, money = -40, max_health = -6, popularity = 0}
+ACTIVITIES[2] = {name = "Hit the town", health = -6, money = -40, max_health = -1, popularity = 5}
+ACTIVITIES[3] = {name = "Work night shift", health = -6, money = 20, max_health = 0, popularity = 0}
+ACTIVITIES[4] = {name = "Stay in", health = 1, money = -5, max_health = 0, popularity = 0}
 ACTIVITIES[5] = {name = "Retire", health = 0, money = 0, max_health = 0, popularity = 0}
 
 PRE_ACTIVITIES = {}
-PRE_ACTIVITIES[1] = {name = "Take drugs", health = 6, money = 40, max_health = -6, popularity = 0}
-PRE_ACTIVITIES[2] = {name = "Hit the town", health = -6, money = 40, max_health = -1, popularity = 5}
+PRE_ACTIVITIES[1] = {name = "Take drugs", health = 6, money = -40, max_health = -6, popularity = 0}
+PRE_ACTIVITIES[2] = {name = "Hit the town", health = -6, money = -40, max_health = -1, popularity = 5}
 PRE_ACTIVITIES[3] = {name = "Hit the gym", health = 6, money = 60, max_health = 0, popularity = 0}
-PRE_ACTIVITIES[4] = {name = "Stay in", health = 1, money = 5, max_health = 0, popularity = 0}
+PRE_ACTIVITIES[4] = {name = "Stay in", health = 1, money = -5, max_health = 0, popularity = 0}
 PRE_ACTIVITIES[5] = {name = "Retire", health = 0, money = 0, max_health = 0, popularity = 0}
 
 WORK_MODES = {}
@@ -21,9 +21,13 @@ WORK_MODES[3] = {name = "Take It Easy", health = 6, popularity = 4}
 
 MATCHES = {}
 
-RANDOM_EVENTS = {}
-RANDOM_EVENTS[1] = {title="Street Fight", description="You got attacked by a drunken 'fan'. One of their friends hit you from behind before you even had a chance. You lost.", health = -10, money = 0, max_health = -2, popularity = -10}
-RANDOM_EVENTS[2] = {title="Workout Groove", description="You're in a groove with your workout. Your maximum health is slightly increased.", health = 1, money = 0, max_health = 1, popularity = 0}
+RANDOM_GYM_EVENTS = {}
+RANDOM_GYM_EVENTS[1] = {title="Street Fight", description="You got blindsided by a 'fan' at the gym, and were beaten pretty badly. Then you noticed your wallet was lighter... ", health = -10, money = "-half", max_health = -2, popularity = -10, skill=0}
+RANDOM_GYM_EVENTS[2] = {title="Workout Groove", description="You're in a groove with your workout. Your maximum health is slightly increased.", health = 1, money = 0, max_health = 1, popularity = 0, skill=0}
+RANDOM_GYM_EVENTS[3] = {title="Mild Injury", description="You sprained your ankle in training. Your max health went down slightly.", health = -1, money = 0, max_health = -1, popularity = 0, skill=0}
+RANDOM_GYM_EVENTS[4] = {title="Stolen Passport", description="Some jerk stole your passport and took a bunch of your money.", health = 0, money = "-half", max_health = 0, popularity = 0, skill=0}
+
+CURRENT_RANDOM_EVENT = false
 
 function love.load()
 	--love.filesystem.load( "table.save-1.0.lua" )()
@@ -178,9 +182,57 @@ function love.draw()
 	if CURRENT_SCREEN == "newday" then
 		drawNewDayScreen()
 	end
+
+	if CURRENT_SCREEN == "randomEvent" then
+		drawRandomEventScreen(CURRENT_RANDOM_EVENT)
+	end
 end
 
 function drawDebugScreen()
+	
+end
+
+function drawRandomEventScreen(event)
+	love.graphics.setColor(0,0,0)
+	--love.graphics.setColor(0,129,249)
+	love.graphics.rectangle("fill", 0, 0, window_width, window_height)
+	love.graphics.setColor(255,255,255)
+	love.graphics.setFont(mainFont)
+	centerText(30,"SOMETHING HAPPENED!!", 40)
+	centerText(30,event.title, 150)
+
+
+	love.graphics.printf( event.description, 20, 200, 760, "left" )
+	--love.graphics.print(RANDOM_GYM_EVENTS[1].description, 20, 250)
+
+	love.graphics.setColor(200,200,200)
+	love.graphics.rectangle("fill", 30, 430, window_width-60, 80)
+
+
+	love.graphics.setFont(statFont)
+	centerText(20,"EFFECTS", 400)
+	love.graphics.setColor(0,0,0)
+	love.graphics.print("HEALTH / MAX", 40, 440)
+	love.graphics.print(event.health .. " / " .. event.max_health, 40, 480)
+	
+	love.graphics.print("SKILL", 380, 440)
+	love.graphics.print(event.skill, 380, 480)
+	
+	love.graphics.print("FANS", 520, 440)
+	love.graphics.print(event.popularity, 520, 480)
+	
+	love.graphics.print("$", 670, 440)
+	if event.money == "-half" then
+		money_effect = player.money * 0.5
+		love.graphics.print("-"..money_effect, 670, 480)
+	else
+		money_effect = event.money
+		love.graphics.print(money_effect, 670, 480)
+	end
+
+	love.graphics.setColor(255,255,255)
+	love.graphics.setFont(mainFont)
+	centerText(30,"Press Start to Continue", window_height-50)
 	
 end
 
@@ -479,22 +531,22 @@ function drawRoadScreen()
 	
 	love.graphics.print("What do you want to do?", 30,200)
 		
-	love.graphics.print("Take pain meds - $40", 30,240)
+	love.graphics.print("Take pain meds -$40", 30,240)
 	love.graphics.setColor(255,255,255)
-	love.graphics.print(ACTIVITIES[1].health .. " Health, " .. ACTIVITIES[1].max_health .. " Max Health", 30,275)
+	love.graphics.print("+" .. ACTIVITIES[1].health .. " Health, " .. ACTIVITIES[1].max_health .. " Max Health", 30,275)
 	
 	love.graphics.setColor(0,0,0)
-	love.graphics.print("Hit the town - $40", 30,305)
+	love.graphics.print("Hit the town -$40", 30,305)
 	love.graphics.setColor(255,255,255)
 	love.graphics.print(ACTIVITIES[2].health .. " health, gain ".. ACTIVITIES[2].popularity .. " fans", 30,335)
 	
 	love.graphics.setColor(0,0,0)
-	love.graphics.print("Hit the gym - $60", 30,365)
+	love.graphics.print("Go to work +$20", 30,365)
 	love.graphics.setColor(255,255,255)
 	love.graphics.print(ACTIVITIES[3].health .. " health", 30,395)
 	
 	love.graphics.setColor(0,0,0)
-	love.graphics.print("Stay in - $5", 30,425)
+	love.graphics.print("Stay in -$5", 30,425)
 	love.graphics.setColor(255,255,255)
 	love.graphics.print("No effect", 30,455)
 	
@@ -545,22 +597,22 @@ function drawPrematchScreen()
 	
 	love.graphics.print("What do you want to do?", 30,200)
 		
-	love.graphics.print("Take pain meds - $40", 30,240)
+	love.graphics.print("Take pain meds -$40", 30,240)
 	love.graphics.setColor(255,255,255)
-	love.graphics.print(ACTIVITIES[1].health .. " Health, " .. ACTIVITIES[1].max_health .. " Max Health", 30,275)
+	love.graphics.print("+" .. ACTIVITIES[1].health .. " Health, " .. ACTIVITIES[1].max_health .. " Max Health", 30,275)
 	
 	love.graphics.setColor(0,0,0)
-	love.graphics.print("Hit the town - $40", 30,305)
+	love.graphics.print("Hit the town -$40", 30,305)
 	love.graphics.setColor(255,255,255)
 	love.graphics.print(ACTIVITIES[2].health .. " health, gain ".. ACTIVITIES[2].popularity .. " fans", 30,335)
 	
 	love.graphics.setColor(0,0,0)
-	love.graphics.print("Hit the gym - $60", 30,365)
+	love.graphics.print("Hit the gym -$60", 30,365)
 	love.graphics.setColor(255,255,255)
 	love.graphics.print(ACTIVITIES[3].health .. " health", 30,395)
 	
 	love.graphics.setColor(0,0,0)
-	love.graphics.print("Stay in - $5", 30,425)
+	love.graphics.print("Stay in -$5", 30,425)
 	love.graphics.setColor(255,255,255)
 	love.graphics.print("No effect", 30,455)
 	
@@ -683,9 +735,8 @@ function handleKeyPress(key, currentScreen)
 	    if currentScreen == "match" then
 
 			health_change = math.floor(math.random(1,WORK_MODES[current_work_mode].health))
-			print(health_change)
 			--popularity_change = math.floor(math.random(1,WORK_MODES[current_work_mode].popularity)*player.skill/2)
-			popularity_change = 0
+			popularity_change = false
 			potential_fans = match.attendence
 
 			skill_bonus = 0
@@ -708,12 +759,11 @@ function handleKeyPress(key, currentScreen)
 				pop_bonus = 3
 			end
 
-			print((math.random(1,20) + skill_bonus))
 			-- Check if we gain any fans at all, or if we shit the bed.
 			if (math.random(1,20) + skill_bonus) > 10 then
 				-- Gain fans
-
-				while popularity_change == 0 do
+				while popularity_change == false do
+					-- This is causing an infinite loop.
 					popularity_roll = math.random(1, WORK_MODES[current_work_mode].popularity) + pop_bonus
 
 					fake_fans = math.floor(potential_fans/100) * popularity_roll
@@ -723,9 +773,17 @@ function handleKeyPress(key, currentScreen)
 			end
 
 			player.health = player.health - health_change
-			player.popularity = player.popularity + popularity_change
+
+			if popularity_change ~= false then
+				if((player.popularity + popularity_change) > 0) then
+					player.popularity = player.popularity + popularity_change
+				else
+					player.popularity = 0;
+				end
+			end
 
 			player.money = player.money + match.pay
+
 			player.money_earned = player.money_earned + match.pay
 
 			player.skill = player.skill + 1
@@ -746,16 +804,25 @@ function handleKeyPress(key, currentScreen)
 		
 	    if currentScreen == "road" then
 			
-	 		if (player.money - ACTIVITIES[current_activity_choice].money) > 0 then
+			-- The check here is "do we have negative money? if not, proceed."
+	 		if (player.money - math.abs(ACTIVITIES[current_activity_choice].money)) > 0 then
+
 	 			player.max_health = player.max_health + ACTIVITIES[current_activity_choice].max_health
 
 	 			if (player.health + ACTIVITIES[current_activity_choice].health) > player.max_health then
-	 				player.health = player.health + ACTIVITIES[current_activity_choice].health
-	 			else
+	 				
 	 				player.health = player.max_health
+	 			else
+	 				player.health = player.health + ACTIVITIES[current_activity_choice].health
 	 			end
 	 			
-	 			player.money = player.money - ACTIVITIES[current_activity_choice].money
+	 			if(ACTIVITIES[current_activity_choice].money > 0) then
+	 				player.money = player.money + ACTIVITIES[current_activity_choice].money
+	 			else
+	 				player.money = player.money - math.abs(ACTIVITIES[current_activity_choice].money)
+	 			end
+	 			
+
 	 			player.money_spent = player.money_spent + ACTIVITIES[current_activity_choice].money
 
 	 			player.popularity = player.popularity + ACTIVITIES[current_activity_choice].popularity
@@ -764,25 +831,27 @@ function handleKeyPress(key, currentScreen)
 		
 	 			match = makeMatch()
 				
+				-- retirement confirm
 				if current_activity_choice == 5 then
 					RETURN_TO = "road"
 	 				CURRENT_SCREEN = "gameOverConfirm"
 				else
-					if randomOutsideEventRoll() then
-						random_event = getRandomOutsideEvent()
-					else
-						day = day+1
-						CURRENT_SCREEN = "newday"
-					end
+					day = day+1
+					CURRENT_SCREEN = "newday"
 				end
+
 			end
 		
 	 	end
 
 	 	if currentScreen == "newday" then
-			
 			current_activity_choice = 1
 	 		CURRENT_SCREEN = "prematch"
+	 	end
+
+		if currentScreen == "randomEvent" then
+			current_activity_choice = 1
+	 		CURRENT_SCREEN = RETURN_TO
 	 	end
 
 	 	if currentScreen == "prematch" then
@@ -801,8 +870,47 @@ function handleKeyPress(key, currentScreen)
 				if current_activity_choice == 5 then
 					RETURN_TO = "prematch"
 	 				CURRENT_SCREEN = "gameOverConfirm"
+				elseif current_activity_choice == 3 then
+					RETURN_TO = "card"
+
+					random_event_roll = math.random(1,100)
+					if random_event_roll > 20 then
+						CURRENT_RANDOM_EVENT = RANDOM_GYM_EVENTS[math.random(1,#RANDOM_GYM_EVENTS)]
+
+						-- Apply effects of selected event before changing screens
+						player.max_health = player.max_health + CURRENT_RANDOM_EVENT.max_health
+
+			 			if (player.health + CURRENT_RANDOM_EVENT.health) > player.max_health then
+			 				player.health = player.max_health
+			 				
+			 			else
+			 				player.health = player.health + CURRENT_RANDOM_EVENT.health
+			 			end
+			 			
+		 				if CURRENT_RANDOM_EVENT.money == "-half" then
+							money_effect = player.money * 0.5
+						else
+							money_effect = CURRENT_RANDOM_EVENT.money
+						end
+
+						if money_effect > 0 then
+							player.money = player.money + money_effect
+						else
+							player.money = player.money - money_effect
+						end
+
+						if((player.popularity + CURRENT_RANDOM_EVENT.popularity) > 0) then
+			 				player.popularity = player.popularity + CURRENT_RANDOM_EVENT.popularity
+			 			else
+			 				player.popularity = 0
+			 			end
+
+						CURRENT_SCREEN = "randomEvent"
+					else
+						CURRENT_SCREEN = "card"
+					end
+
 				else
-					day = day+1
 					CURRENT_SCREEN = "card"
 				end
 			end
