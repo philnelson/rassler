@@ -26,8 +26,20 @@ RANDOM_GYM_EVENTS[1] = {title="Street Fight", description="You got blindsided by
 RANDOM_GYM_EVENTS[2] = {title="Workout Groove", description="You're in a groove with your workout. Your maximum health is slightly increased.", health = 1, money = 0, max_health = 1, popularity = 0, skill=0}
 RANDOM_GYM_EVENTS[3] = {title="Mild Injury", description="You sprained your ankle in training. Your max health went down slightly.", health = -1, money = 0, max_health = -1, popularity = 0, skill=0}
 RANDOM_GYM_EVENTS[4] = {title="Stolen Passport", description="Some jerk stole your passport and took a bunch of your money.", health = 0, money = "-half", max_health = 0, popularity = 0, skill=0}
+RANDOM_GYM_EVENTS[5] = {title="Arm Wrestling Champ", description="You won an arm wrestling competition at the gym.", health = 0, money = 50, max_health = 0, popularity = 5, skill=0}
+RANDOM_GYM_EVENTS[6] = {title="Good Trainer", description="You've got a new trainer. They're helping you a lot.", health = 0, money = 0, max_health = 2, popularity = 0, skill=1}
+
+RANDOM_MATCH_EVENTS = {}
+RANDOM_MATCH_EVENTS[1] = {title="Mild Injury", description="You pulled a muscle in the match. It'll be sore for awhile.", health = -10, money = 0, max_health = -2, popularity = 0, skill=0}
+RANDOM_MATCH_EVENTS[2] = {title="Great Match", description="You really stole the show out there tonight. The crowd loved it.", health = 0, money = 0, max_health = 0, popularity = 5, skill=0}
+RANDOM_MATCH_EVENTS[3] = {title="Bad Match", description="You stunk up the joint out there. The people did not like what they saw.", health = 0, money = 0, max_health = 0, popularity = -5, skill=0}
+RANDOM_MATCH_EVENTS[4] = {title="Something Clicked", description="You can't explain it, but you just feel more comfortable in the ring.", health = 0, money = 0, max_health = 0, popularity = 1, skill=5}
+RANDOM_MATCH_EVENTS[5] = {title="Serious Injury", description="Your opponnent dropped you hard on your neck. You're hurt pretty bad.", health = -30, money = 0, max_health = 0, popularity = 1, skill=5}
 
 CURRENT_RANDOM_EVENT = false
+CURRENT_RANDOM_MATCH_EVENT = false
+
+-- TODO: Add randomMoveName and a move names list to make characters more deep. Each generated characer will have a finisher. Also used on random events.
 
 function love.load()
 	--love.filesystem.load( "table.save-1.0.lua" )()
@@ -42,12 +54,13 @@ function love.load()
 	headlineFont = love.graphics.newFont("prstart.ttf",26)
 	statFont = love.graphics.newFont("prstart.ttf",16)
 	
-	bass_bg = love.audio.newSource("bass background.ogg")
+	bass_bg = love.audio.newSource("sounds/bass background.ogg")
 	matchBell = love.audio.newSource("sounds/matchBell.ogg")
+	badChoice = love.audio.newSource("sounds/badChoice.ogg")
 
-	bass_bg:setVolume(0.1)
+	--bass_bg:setVolume(0.1)
 	--bass_bg:play()
-	bass_bg:setLooping(true)
+	--bass_bg:setLooping(true)
 
 	day = 1
 	
@@ -186,6 +199,10 @@ function love.draw()
 	if CURRENT_SCREEN == "randomEvent" then
 		drawRandomEventScreen(CURRENT_RANDOM_EVENT)
 	end
+
+	if CURRENT_SCREEN == "randomMatchEvent" then
+		drawRandomEventScreen(CURRENT_RANDOM_EVENT)
+	end
 end
 
 function drawDebugScreen()
@@ -223,7 +240,7 @@ function drawRandomEventScreen(event)
 	
 	love.graphics.print("$", 670, 440)
 	if event.money == "-half" then
-		money_effect = player.money * 0.5
+		money_effect = math.floor(player.money * 0.5)
 		love.graphics.print("-"..money_effect, 670, 480)
 	else
 		money_effect = event.money
@@ -599,17 +616,17 @@ function drawPrematchScreen()
 		
 	love.graphics.print("Take pain meds -$40", 30,240)
 	love.graphics.setColor(255,255,255)
-	love.graphics.print("+" .. ACTIVITIES[1].health .. " Health, " .. ACTIVITIES[1].max_health .. " Max Health", 30,275)
+	love.graphics.print("+" .. PRE_ACTIVITIES[1].health .. " Health, " .. PRE_ACTIVITIES[1].max_health .. " Max Health", 30,275)
 	
 	love.graphics.setColor(0,0,0)
 	love.graphics.print("Hit the town -$40", 30,305)
 	love.graphics.setColor(255,255,255)
-	love.graphics.print(ACTIVITIES[2].health .. " health, gain ".. ACTIVITIES[2].popularity .. " fans", 30,335)
+	love.graphics.print(PRE_ACTIVITIES[2].health .. " health, gain ".. PRE_ACTIVITIES[2].popularity .. " fans", 30,335)
 	
 	love.graphics.setColor(0,0,0)
 	love.graphics.print("Hit the gym -$60", 30,365)
 	love.graphics.setColor(255,255,255)
-	love.graphics.print(ACTIVITIES[3].health .. " health", 30,395)
+	love.graphics.print("+" .. PRE_ACTIVITIES[3].health .. " health", 30,395)
 	
 	love.graphics.setColor(0,0,0)
 	love.graphics.print("Stay in -$5", 30,425)
@@ -645,7 +662,7 @@ function drawNewDayScreen()
 
 	love.graphics.setColor(0,0,0)
 	love.graphics.print("It's a new day, yes it is.", 20, 80)
-	love.graphics.print("Your health changed " .. MATCHES[#MATCHES].health - MATCHES[#MATCHES-1].health .. " overnight.", 20, 120)
+	--love.graphics.print("Your health changed " .. MATCHES[#MATCHES].health - MATCHES[#MATCHES-1].health .. " overnight.", 20, 120)
 	love.graphics.print("Your next match is against " .. opponent.name, 20, 150)
 
 	love.graphics.setFont(mainFont)
@@ -734,6 +751,8 @@ function handleKeyPress(key, currentScreen)
 		
 	    if currentScreen == "match" then
 
+	    	RETURN_TO = "result"
+
 			health_change = math.floor(math.random(1,WORK_MODES[current_work_mode].health))
 			--popularity_change = math.floor(math.random(1,WORK_MODES[current_work_mode].popularity)*player.skill/2)
 			popularity_change = false
@@ -794,7 +813,42 @@ function handleKeyPress(key, currentScreen)
 
 			savePlayerStatus()
 
-			CURRENT_SCREEN = "result"
+			random_event_roll = math.random(1,20)
+			if random_event_roll > 15 then
+				CURRENT_RANDOM_EVENT = RANDOM_MATCH_EVENTS[math.random(1,#RANDOM_MATCH_EVENTS)]
+
+				-- Apply effects of selected event before changing screens
+				player.max_health = player.max_health + CURRENT_RANDOM_EVENT.max_health
+
+	 			if (player.health + CURRENT_RANDOM_EVENT.health) > player.max_health then
+	 				player.health = player.max_health
+	 				
+	 			else
+	 				player.health = player.health + CURRENT_RANDOM_EVENT.health
+	 			end
+	 			
+ 				if CURRENT_RANDOM_EVENT.money == "-half" then
+					money_effect = player.money * 0.5
+				else
+					money_effect = CURRENT_RANDOM_EVENT.money
+				end
+
+				if money_effect > 0 then
+					player.money = player.money + money_effect
+				else
+					player.money = player.money - money_effect
+				end
+
+				if((player.popularity + CURRENT_RANDOM_EVENT.popularity) > 0) then
+	 				player.popularity = player.popularity + CURRENT_RANDOM_EVENT.popularity
+	 			else
+	 				player.popularity = 0
+	 			end
+
+				CURRENT_SCREEN = "randomEvent"
+			else
+				CURRENT_SCREEN = "result"
+			end
 	    end
 		
 		if currentScreen == "result" then
@@ -803,42 +857,59 @@ function handleKeyPress(key, currentScreen)
 		end
 		
 	    if currentScreen == "road" then
+
+	    	can_do_activity = false
 			
 			-- The check here is "do we have negative money? if not, proceed."
 	 		if (player.money - math.abs(ACTIVITIES[current_activity_choice].money)) > 0 then
 
-	 			player.max_health = player.max_health + ACTIVITIES[current_activity_choice].max_health
-
-	 			if (player.health + ACTIVITIES[current_activity_choice].health) > player.max_health then
-	 				
-	 				player.health = player.max_health
+	 			-- Does this damage our health?
+	 			if (ACTIVITIES[current_activity_choice].health < 0) then
+	 				-- If it does, we can't do it while our health is <= 0. We can only do helath-positive things then.
+	 				if (player.health <= 0) or ((player.health - math.abs(ACTIVITIES[current_activity_choice].health)) < 0) then
+	 					can_do_activity = false
+	 				else
+	 					can_do_activity = true
+	 				end
 	 			else
-	 				player.health = player.health + ACTIVITIES[current_activity_choice].health
+	 				can_do_activity = true
 	 			end
-	 			
-	 			if(ACTIVITIES[current_activity_choice].money > 0) then
-	 				player.money = player.money + ACTIVITIES[current_activity_choice].money
-	 			else
-	 				player.money = player.money - math.abs(ACTIVITIES[current_activity_choice].money)
-	 			end
-	 			
 
-	 			player.money_spent = player.money_spent + ACTIVITIES[current_activity_choice].money
+	 			if can_do_activity == true then
+		 			player.max_health = player.max_health + ACTIVITIES[current_activity_choice].max_health
 
-	 			player.popularity = player.popularity + ACTIVITIES[current_activity_choice].popularity
+		 			if (player.health + ACTIVITIES[current_activity_choice].health) > player.max_health then
+		 				
+		 				player.health = player.max_health
+		 			else
+		 				player.health = player.health + ACTIVITIES[current_activity_choice].health
+		 			end
+		 			
+		 			if(ACTIVITIES[current_activity_choice].money > 0) then
+		 				player.money = player.money + ACTIVITIES[current_activity_choice].money
+		 			else
+		 				player.money = player.money - math.abs(ACTIVITIES[current_activity_choice].money)
+		 			end
+		 			
 
-	 			MATCHES[#MATCHES+1] = {screen = currentScreen, health = player.health, popularity = player.popularity, skill = player.skill, age = player.age, money = player.money, match = match}
-		
-	 			match = makeMatch()
-				
-				-- retirement confirm
-				if current_activity_choice == 5 then
-					RETURN_TO = "road"
-	 				CURRENT_SCREEN = "gameOverConfirm"
-				else
-					day = day+1
-					CURRENT_SCREEN = "newday"
-				end
+		 			player.money_spent = player.money_spent + ACTIVITIES[current_activity_choice].money
+
+		 			player.popularity = player.popularity + ACTIVITIES[current_activity_choice].popularity
+
+		 			MATCHES[#MATCHES+1] = {screen = currentScreen, health = player.health, popularity = player.popularity, skill = player.skill, age = player.age, money = player.money, match = match}
+			
+		 			match = makeMatch()
+
+		 			-- retirement confirm
+					if current_activity_choice == 5 then
+						RETURN_TO = "road"
+		 				CURRENT_SCREEN = "gameOverConfirm"
+					else
+						day = day+1
+						CURRENT_SCREEN = "newday"
+					end
+
+		 		end
 
 			end
 		
@@ -856,6 +927,7 @@ function handleKeyPress(key, currentScreen)
 
 	 	if currentScreen == "prematch" then
 	 		if (player.money - ACTIVITIES[current_activity_choice].money) > 0 then
+
 	 			if (player.health + ACTIVITIES[current_activity_choice].health) > player.max_health then
 	 				player.health = player.max_health
 	 			else
@@ -873,8 +945,8 @@ function handleKeyPress(key, currentScreen)
 				elseif current_activity_choice == 3 then
 					RETURN_TO = "card"
 
-					random_event_roll = math.random(1,100)
-					if random_event_roll > 20 then
+					random_event_roll = math.random(1,20)
+					if random_event_roll > 15 then
 						CURRENT_RANDOM_EVENT = RANDOM_GYM_EVENTS[math.random(1,#RANDOM_GYM_EVENTS)]
 
 						-- Apply effects of selected event before changing screens
