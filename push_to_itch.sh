@@ -1,5 +1,5 @@
 #!/bin/bash
-TARGET_PREFIX = "youritchname"
+TARGET_PREFIX="youritchname"
 
 butler push Bin/Release/rassler-windows64.zip $TARGET_PREFIX/rassler:windows64
 butler push Bin/Release/rassler-windows32.zip $TARGET_PREFIX/rassler:windows32
