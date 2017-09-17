@@ -34,7 +34,7 @@ RANDOM_MATCH_EVENTS[1] = {title="Mild Injury", description="You pulled a muscle 
 RANDOM_MATCH_EVENTS[2] = {title="Great Match", description="You really stole the show out there tonight. The crowd loved it.", health = 0, money = 0, max_health = 0, popularity = 5, skill=0}
 RANDOM_MATCH_EVENTS[3] = {title="Bad Match", description="You stunk up the joint out there. The people did not like what they saw.", health = 0, money = 0, max_health = 0, popularity = -5, skill=0}
 RANDOM_MATCH_EVENTS[4] = {title="Something Clicked", description="You can't explain it, but you just feel more comfortable in the ring.", health = 0, money = 0, max_health = 0, popularity = 1, skill=5}
-RANDOM_MATCH_EVENTS[5] = {title="Serious Injury", description="Your opponnent dropped you hard on your neck. You're hurt pretty bad.", health = -30, money = 0, max_health = 0, popularity = 1, skill=5}
+RANDOM_MATCH_EVENTS[5] = {title="Serious Injury", description="Your opponnent dropped you hard on your neck. You're hurt pretty bad.", health = -30, money = 0, max_health = -10, popularity = 1, skill=5}
 
 CURRENT_RANDOM_EVENT = false
 CURRENT_RANDOM_MATCH_EVENT = false
@@ -858,59 +858,63 @@ function handleKeyPress(key, currentScreen)
 		
 	    if currentScreen == "road" then
 
-	    	can_do_activity = false
-			
-			-- The check here is "do we have negative money? if not, proceed."
-	 		if (player.money - math.abs(ACTIVITIES[current_activity_choice].money)) > 0 then
+	    	if current_activity_choice == 5 then
+				RETURN_TO = "road"
+				CURRENT_SCREEN = "gameOverConfirm"
+			else
 
-	 			-- Does this damage our health?
-	 			if (ACTIVITIES[current_activity_choice].health < 0) then
-	 				-- If it does, we can't do it while our health is <= 0. We can only do helath-positive things then.
-	 				if (player.health <= 0) or ((player.health - math.abs(ACTIVITIES[current_activity_choice].health)) < 0) then
-	 					can_do_activity = false
-	 				else
-	 					can_do_activity = true
-	 				end
-	 			else
-	 				can_do_activity = true
-	 			end
+		    	can_do_activity = false
+				
+				-- The check here is "do we have negative money? if not, proceed."
+		 		if (player.money - math.abs(ACTIVITIES[current_activity_choice].money)) > 0 then
 
-	 			if can_do_activity == true then
-		 			player.max_health = player.max_health + ACTIVITIES[current_activity_choice].max_health
+		 			-- Does this damage our health?
+		 			if (ACTIVITIES[current_activity_choice].health < 0) then
+		 				-- If it does, we can't do it while our health is <= 0. We can only do helath-positive things then.
+		 				if (player.health <= 0) or ((player.health - math.abs(ACTIVITIES[current_activity_choice].health)) < 0) then
+		 				else
+		 					can_do_activity = true
+		 				end
+		 			else
 
-		 			if (player.health + ACTIVITIES[current_activity_choice].health) > player.max_health then
+		 				if (player.health + ACTIVITIES[current_activity_choice].health) > 0 then
+		 					can_do_activity = true
+		 				end
 		 				
-		 				player.health = player.max_health
-		 			else
-		 				player.health = player.health + ACTIVITIES[current_activity_choice].health
 		 			end
-		 			
-		 			if(ACTIVITIES[current_activity_choice].money > 0) then
-		 				player.money = player.money + ACTIVITIES[current_activity_choice].money
-		 			else
-		 				player.money = player.money - math.abs(ACTIVITIES[current_activity_choice].money)
-		 			end
-		 			
 
-		 			player.money_spent = player.money_spent + ACTIVITIES[current_activity_choice].money
+		 			if can_do_activity == true then
+			 			player.max_health = player.max_health + ACTIVITIES[current_activity_choice].max_health
 
-		 			player.popularity = player.popularity + ACTIVITIES[current_activity_choice].popularity
+			 			if (player.health + ACTIVITIES[current_activity_choice].health) > player.max_health then
+			 				
+			 				player.health = player.max_health
+			 			else
+			 				player.health = player.health + ACTIVITIES[current_activity_choice].health
+			 			end
+			 			
+			 			if(ACTIVITIES[current_activity_choice].money > 0) then
+			 				player.money = player.money + ACTIVITIES[current_activity_choice].money
+			 			else
+			 				player.money = player.money - math.abs(ACTIVITIES[current_activity_choice].money)
+			 			end
+			 			
 
-		 			MATCHES[#MATCHES+1] = {screen = currentScreen, health = player.health, popularity = player.popularity, skill = player.skill, age = player.age, money = player.money, match = match}
-			
-		 			match = makeMatch()
+			 			player.money_spent = player.money_spent + ACTIVITIES[current_activity_choice].money
 
-		 			-- retirement confirm
-					if current_activity_choice == 5 then
-						RETURN_TO = "road"
-		 				CURRENT_SCREEN = "gameOverConfirm"
-					else
+			 			player.popularity = player.popularity + ACTIVITIES[current_activity_choice].popularity
+
+			 			MATCHES[#MATCHES+1] = {screen = currentScreen, health = player.health, popularity = player.popularity, skill = player.skill, age = player.age, money = player.money, match = match}
+				
+			 			match = makeMatch()
+
 						day = day+1
 						CURRENT_SCREEN = "newday"
-					end
+					
 
-		 		end
+			 		end
 
+				end
 			end
 		
 	 	end
@@ -926,24 +930,45 @@ function handleKeyPress(key, currentScreen)
 	 	end
 
 	 	if currentScreen == "prematch" then
-	 		if (player.money - ACTIVITIES[current_activity_choice].money) > 0 then
 
-	 			if (player.health + ACTIVITIES[current_activity_choice].health) > player.max_health then
-	 				player.health = player.max_health
+	 		if current_activity_choice == 5 then
+				RETURN_TO = "prematch"
+ 				CURRENT_SCREEN = "gameOverConfirm"
+ 			end
+
+	 		RETURN_TO = "card"
+
+	 		can_do_activity = false
+
+	 		if (player.money - PRE_ACTIVITIES[current_activity_choice].money) > 0 then
+
+	 			-- Does this damage our health?
+	 			if (PRE_ACTIVITIES[current_activity_choice].health < 0) then
+	 				-- If it does, we can't do it while our health is <= 0. We can only do helath-positive things then.
+	 				if (player.health <= 0) or ((player.health - math.abs(PRE_ACTIVITIES[current_activity_choice].health)) < 0) then
+	 				else
+	 					can_do_activity = true
+	 				end
 	 			else
-	 				player.health = player.health + ACTIVITIES[current_activity_choice].health
+
+	 				if (player.health + PRE_ACTIVITIES[current_activity_choice].health) > 0 then
+	 					can_do_activity = true
+	 				end
+	 				
 	 			end
+
+	 			if can_do_activity == true then
 	 			
-	 			player.max_health = player.max_health + ACTIVITIES[current_activity_choice].max_health
-	 			player.money = player.money - ACTIVITIES[current_activity_choice].money
-	 			player.money_spent = player.money_spent + ACTIVITIES[current_activity_choice].money
-	 			player.popularity = player.popularity + ACTIVITIES[current_activity_choice].popularity
-				
-				if current_activity_choice == 5 then
-					RETURN_TO = "prematch"
-	 				CURRENT_SCREEN = "gameOverConfirm"
-				elseif current_activity_choice == 3 then
-					RETURN_TO = "card"
+		 			if (player.health + PRE_ACTIVITIES[current_activity_choice].health) > player.max_health then
+		 				player.health = player.max_health
+		 			else
+		 				player.health = player.health + PRE_ACTIVITIES[current_activity_choice].health
+		 			end
+		 			
+		 			player.max_health = player.max_health + PRE_ACTIVITIES[current_activity_choice].max_health
+		 			player.money = player.money - PRE_ACTIVITIES[current_activity_choice].money
+		 			player.money_spent = player.money_spent + PRE_ACTIVITIES[current_activity_choice].money
+		 			player.popularity = player.popularity + PRE_ACTIVITIES`[current_activity_choice].popularity
 
 					random_event_roll = math.random(1,20)
 					if random_event_roll > 15 then
@@ -981,9 +1006,6 @@ function handleKeyPress(key, currentScreen)
 					else
 						CURRENT_SCREEN = "card"
 					end
-
-				else
-					CURRENT_SCREEN = "card"
 				end
 			end
 	 	end
