@@ -1,6 +1,10 @@
 #!/bin/bash
 TARGET_PREFIX="youritchname"
 
+./create_macos.sh
+./create_windows.sh
+./create_linux.sh
+
 butler push Bin/Release/rassler-windows64.zip $TARGET_PREFIX/rassler:windows64
 butler push Bin/Release/rassler-windows32.zip $TARGET_PREFIX/rassler:windows32
 butler push Bin/Release/rassler_macos.zip $TARGET_PREFIX/rassler:macos
