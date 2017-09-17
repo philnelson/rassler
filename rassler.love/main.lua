@@ -968,7 +968,7 @@ function handleKeyPress(key, currentScreen)
 		 			player.max_health = player.max_health + PRE_ACTIVITIES[current_activity_choice].max_health
 		 			player.money = player.money - PRE_ACTIVITIES[current_activity_choice].money
 		 			player.money_spent = player.money_spent + PRE_ACTIVITIES[current_activity_choice].money
-		 			player.popularity = player.popularity + PRE_ACTIVITIES`[current_activity_choice].popularity
+		 			player.popularity = player.popularity + PRE_ACTIVITIES[current_activity_choice].popularity
 
 					random_event_roll = math.random(1,20)
 					if random_event_roll > 15 then
