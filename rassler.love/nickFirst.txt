@@ -27,7 +27,7 @@ Canadian
 Great
 Junior
 Impossible
-Big Red
+Big
 Orange
 Blue
 Intelligent
@@ -40,7 +40,6 @@ Bionic
 Country
 High-plains
 Freaky
-Buzz
 Ravishing
 Lightning
 Brutal

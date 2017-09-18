@@ -1,0 +1,8 @@
+driver
+bomb
+plex
+sault
+buster
+lock
+hold
+scissors

@@ -53,6 +53,7 @@ function love.load()
 	secondaryFont = love.graphics.newFont("prstart.ttf",20)
 	headlineFont = love.graphics.newFont("prstart.ttf",26)
 	statFont = love.graphics.newFont("prstart.ttf",16)
+	tinyFont = love.graphics.newFont("prstart.ttf",12)
 	
 	bass_bg = love.audio.newSource("sounds/bass background.ogg")
 	matchBell = love.audio.newSource("sounds/matchBell.ogg")
@@ -107,6 +108,36 @@ function love.load()
 	else
 		print("no file")
 	end
+
+	moveNamesFirst = {}
+	movesFirstFile = "movesFirst.txt"
+	if movesFirstFile then
+	    for line in love.filesystem.lines(movesFirstFile) do
+	        moveNamesFirst[#moveNamesFirst+1] = line
+	    end
+	else
+		print("no file")
+	end
+
+	moveNamesLast = {}
+	movesLastFile = "movesLast.txt"
+	if movesLastFile then
+	    for line in love.filesystem.lines(movesLastFile) do
+	        moveNamesLast[#moveNamesLast+1] = line
+	    end
+	else
+		print("no file")
+	end
+
+	moveNamesMods = {}
+	movesModFile = "movesModifier.txt"
+	if movesModFile then
+	    for line in love.filesystem.lines(movesModFile) do
+	        moveNamesMods[#moveNamesMods+1] = line
+	    end
+	else
+		print("no file")
+	end
 	
 	player = generateRassler()
 	opponent = generateRassler()
@@ -127,6 +158,7 @@ function generateRassler()
 	rassler['name'] = generateRasslerName()
 	rassler['image'] = math.random(1,rasslers)
 	rassler['nickname'] = generateRasslerNickname()
+	rassler['favorite_move'] = generateFavoriteMove()
 	rassler['skill'] = math.random(1,3)
 	rassler['health'] = player_starting_health
 	rassler['max_health'] = player_starting_max_health
@@ -672,43 +704,87 @@ end
 
 function drawStartScreen()
 	
+	love.graphics.setColor(50,50,50)
+	love.graphics.rectangle( "fill", 20, 130, 320, 330 )
+	love.graphics.setColor(240,240,240)
+	love.graphics.rectangle( "fill", 20, 370, 320, 90 )
+	love.graphics.setColor(10,10,10)
+	love.graphics.rectangle( "fill", 20, 410, 320, 50 )
+	love.graphics.setColor(0,255,255)
+	love.graphics.rectangle( "fill", 20, 130, 10, 20 )
+	love.graphics.setColor(255,0,255)
+	love.graphics.rectangle( "fill", 30, 130, 10, 20 )
 	love.graphics.setColor(0,0,0)
-	love.graphics.setLineWidth( 8 )
-	love.graphics.rectangle( "line", 0, 250, 800, 200 )
+	love.graphics.rectangle( "fill", 40, 130, 300, 20 )
+
+	love.graphics.setColor(50,50,50)
+	love.graphics.rectangle( "fill", 380, 130, 320, 330 )
+	love.graphics.setColor(240,240,240)
+	love.graphics.rectangle( "fill", 20, 370, 320, 90 )
+	love.graphics.setColor(10,10,10)
+	love.graphics.rectangle( "fill", 20, 410, 320, 50 )
+	love.graphics.setColor(0,255,255)
+	love.graphics.rectangle( "fill", 20, 130, 10, 20 )
+	love.graphics.setColor(255,0,255)
+	love.graphics.rectangle( "fill", 30, 130, 10, 20 )
+	love.graphics.setColor(0,0,0)
+	love.graphics.rectangle( "fill", 40, 130, 300, 20 )
+
+	love.graphics.setColor(0,0,0)
+	love.graphics.setColor(255,255,255)
 	love.graphics.setFont(mainFont)
-	
 	love.graphics.print("So you wanna be a", 20, 20)
 	love.graphics.print("wrestler, huh?", 20, 60)
-	love.graphics.print("Alright kid, here's what", 20, 120)
-	love.graphics.print("we came up with for you.", 20, 160)
+	--love.graphics.print("Alright kid, here's what", 20, 120)
+	--love.graphics.print("we came up with for you.", 20, 160)
 	
+
+	love.graphics.setFont(tinyFont)
+	love.graphics.print("RassleCards", 45, 135)
+
 	love.graphics.setFont(statFont)
-	love.graphics.print("Health", 200, 380)
-	love.graphics.print("Max Health", 320, 380)
-	love.graphics.print("Skill", 520, 380)
-	love.graphics.print("Money", 680, 380)
+	love.graphics.print("Health", 420, 150)
+	love.graphics.print("/ Max", 540, 150)
+	love.graphics.print("Skill", 420, 210)
+	love.graphics.print("Money", 540, 210)
+	love.graphics.print("Favorite move:", 420, 280)
 	
-	love.graphics.print(player.health, 200, 400)
-	love.graphics.print(player.max_health, 320, 400)
-	love.graphics.print(player.skill, 520, 400)
-	love.graphics.print(player.money, 680, 400)
+	love.graphics.print(player.health, 420, 170)
+	love.graphics.print("/ " .. player.max_health, 540, 170)
+	love.graphics.print(player.skill, 420, 230)
+	love.graphics.print(player.money, 540, 230)
+	love.graphics.printf( player.favorite_move, 420, 310, 270, "left" )
+
 	love.graphics.setFont(mainFont)
-	
 	love.graphics.setColor(255,255,255,255)
 	centerText(30,"Press Space: New Rassler",520)
 	centerText(30,"Press Enter: Start", 560)
 	love.graphics.setColor(0,0,0,255)
 	
-	love.graphics.print(player.name, 230, 320)
-	love.graphics.setFont(secondaryFont);
-	love.graphics.print("'" .. player.nickname .. "'", 170, 290)
+	love.graphics.setColor(255,255,255)
+	newFont = love.graphics.newFont("prstart.ttf",autoScaleTextToWidthWithMax(player.name, 300, 24));
+	love.graphics.setFont(newFont, 300);
+	love.graphics.print(player.name, 30, 425)
+
+	love.graphics.setColor(0,0,0)
+	newFont = love.graphics.newFont("prstart.ttf",autoScaleTextToWidthWithMax(player.nickname, 300, 16));
+	love.graphics.setFont(newFont, 300);
+	love.graphics.print("'" .. player.nickname .. "'", 30, 385)
 	
 	love.graphics.setFont(mainFont)
 	love.graphics.setColor(255,255,255,255)
 	
 	player_image = love.graphics.newImage( "rassler" .. player.image .. ".png" )
 	
-	love.graphics.draw(player_image, 40, 290)
+	love.graphics.draw(player_image, 120, 200)
+end
+
+function autoScaleTextToWidthWithMax(input, box_width, max)
+	size = (box_width / (string.len(input)+3))
+	if(size > max) then
+		size = max
+	end
+	return size
 end
 
 function love.keyreleased(key)
@@ -1101,6 +1177,38 @@ function generateRasslerNickname()
 
 	if name_style == 4 then
 		nickname = "The " .. nicknamesLast[nicklast]
+	end
+
+	return nickname
+end
+
+function generateFavoriteMove()
+	name_style = math.random(1,3)
+
+	nickfirst = math.random(1,tablelength(moveNamesFirst))
+	nicklast = nickfirst
+
+	modFirst = math.random(1,tablelength(moveNamesMods))
+	modLast = modFirst
+
+	while nickfirst == nicklast do
+		nicklast = math.random(1,tablelength(moveNamesLast))
+	end
+
+	while modFirst == modLast do
+		modLast = math.random(1,tablelength(moveNamesMods))
+	end
+
+	if name_style == 1 then
+		nickname = moveNamesFirst[nickfirst] .. "-" .. moveNamesLast[nicklast]
+	end
+
+	if name_style == 2 then
+		nickname = moveNamesMods[modFirst] .. " " .. moveNamesFirst[nickfirst] .. moveNamesLast[nicklast]
+	end
+
+	if name_style == 3 then
+		nickname = moveNamesMods[modFirst] .. " " .. moveNamesMods[modLast] .. " " .. moveNamesFirst[nickfirst] .. moveNamesLast[nicklast]
 	end
 
 	return nickname
