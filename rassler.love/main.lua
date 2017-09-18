@@ -1081,11 +1081,11 @@ function generateRasslerNickname()
 	name_style = math.random(1,4)
 
 	nickfirst = math.random(1,tablelength(nicknamesFirst))
-		nicklast = nickfirst
+	nicklast = nickfirst
 
-		while nickfirst == nicklast do
-			nicklast = math.random(1,tablelength(nicknamesLast))
-		end
+	while nickfirst == nicklast do
+		nicklast = math.random(1,tablelength(nicknamesLast))
+	end
 
 	if name_style == 1 then
 		nickname = nicknamesFirst[nickfirst] .. ' ' .. nicknamesLast[nicklast]
@@ -1100,7 +1100,7 @@ function generateRasslerNickname()
 	end
 
 	if name_style == 4 then
-		nickname = "The " .. nicknamesFirst[nickfirst]
+		nickname = "The " .. nicknamesLast[nicklast]
 	end
 
 	return nickname
