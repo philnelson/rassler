@@ -10,7 +10,7 @@ ACTIVITIES[5] = {name = "Retire", health = 0, money = 0, max_health = 0, popular
 PRE_ACTIVITIES = {}
 PRE_ACTIVITIES[1] = {name = "Take drugs", health = 6, money = -40, max_health = -6, popularity = 0}
 PRE_ACTIVITIES[2] = {name = "Hit the town", health = -6, money = -40, max_health = -1, popularity = 5}
-PRE_ACTIVITIES[3] = {name = "Hit the gym", health = 6, money = 60, max_health = 0, popularity = 0}
+PRE_ACTIVITIES[3] = {name = "Hit the gym", health = 6, money = -60, max_health = 0, popularity = 0}
 PRE_ACTIVITIES[4] = {name = "Stay in", health = 1, money = -5, max_health = 0, popularity = 0}
 PRE_ACTIVITIES[5] = {name = "Retire", health = 0, money = 0, max_health = 0, popularity = 0}
 
@@ -28,13 +28,15 @@ RANDOM_GYM_EVENTS[3] = {title="Mild Injury", description="You sprained your ankl
 RANDOM_GYM_EVENTS[4] = {title="Stolen Passport", description="Some jerk stole your passport and took a bunch of your money.", health = 0, money = "-half", max_health = 0, popularity = 0, skill=0}
 RANDOM_GYM_EVENTS[5] = {title="Arm Wrestling Champ", description="You won an arm wrestling competition at the gym.", health = 0, money = 50, max_health = 0, popularity = 5, skill=0}
 RANDOM_GYM_EVENTS[6] = {title="Good Trainer", description="You've got a new trainer. They're helping you a lot.", health = 0, money = 0, max_health = 2, popularity = 0, skill=1}
+RANDOM_GYM_EVENTS[7] = {title="New Sponsor", description="You got a new sponsor due to your gym prowess.", health = 0, money = 100, max_health = 0, popularity = 10, skill=0}
+
 
 RANDOM_MATCH_EVENTS = {}
 RANDOM_MATCH_EVENTS[1] = {title="Mild Injury", description="You pulled a muscle in the match. It'll be sore for awhile.", health = -10, money = 0, max_health = -2, popularity = 0, skill=0}
 RANDOM_MATCH_EVENTS[2] = {title="Great Match", description="You really stole the show out there tonight. The crowd loved it.", health = 0, money = 0, max_health = 0, popularity = 5, skill=0}
 RANDOM_MATCH_EVENTS[3] = {title="Bad Match", description="You stunk up the joint out there. The people did not like what they saw.", health = 0, money = 0, max_health = 0, popularity = -5, skill=0}
 RANDOM_MATCH_EVENTS[4] = {title="Something Clicked", description="You can't explain it, but you just feel more comfortable in the ring.", health = 0, money = 0, max_health = 0, popularity = 1, skill=5}
-RANDOM_MATCH_EVENTS[5] = {title="Serious Injury", description="Your opponnent dropped you hard on your neck. You're hurt pretty bad.", health = -30, money = 0, max_health = -10, popularity = 1, skill=5}
+RANDOM_MATCH_EVENTS[5] = {title="Serious Injury", description="Your opponnent dropped you hard on your neck. You're hurt pretty bad.", health = -30, money = 0, max_health = -10, popularity = 0, skill=0}
 
 CURRENT_RANDOM_EVENT = false
 CURRENT_RANDOM_MATCH_EVENT = false
@@ -1042,7 +1044,13 @@ function handleKeyPress(key, currentScreen)
 		 			end
 		 			
 		 			player.max_health = player.max_health + PRE_ACTIVITIES[current_activity_choice].max_health
-		 			player.money = player.money - PRE_ACTIVITIES[current_activity_choice].money
+
+		 			if(PRE_ACTIVITIES[current_activity_choice].money < 0) then
+			 			player.money = player.money - math.abs(PRE_ACTIVITIES[current_activity_choice].money)
+			 		else
+			 			player.money = player.money + math.abs(PRE_ACTIVITIES[current_activity_choice].money)
+			 		end
+		 			
 		 			player.money_spent = player.money_spent + PRE_ACTIVITIES[current_activity_choice].money
 		 			player.popularity = player.popularity + PRE_ACTIVITIES[current_activity_choice].popularity
 
