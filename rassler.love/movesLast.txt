@@ -7,3 +7,6 @@ lock
 hold
 scissors
 sweep
+drop
+clutch
+breaker

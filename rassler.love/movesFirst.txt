@@ -7,3 +7,10 @@ Knee
 Gourd
 Tiger
 Face
+Brain
+Spine
+Finger
+Rooster
+Spleen
+Death
+Hammer

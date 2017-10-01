@@ -40,6 +40,7 @@ RANDOM_MATCH_EVENTS[5] = {title="Serious Injury", description="Your opponnent dr
 
 CURRENT_RANDOM_EVENT = false
 CURRENT_RANDOM_MATCH_EVENT = false
+CURRENT_TERRITORY = 0
 
 -- TODO: Add randomMoveName and a move names list to make characters more deep. Each generated characer will have a finisher. Also used on random events.
 
@@ -69,7 +70,7 @@ function love.load()
 	
 	love.graphics.setFont(mainFont);
 	
-	rasslers = 19
+	rasslers = 22
 
 	nicknamesFirst = {}
 	nicknameFirstFile = "nickFirst.txt"
@@ -140,6 +141,26 @@ function love.load()
 	else
 		print("no file")
 	end
+
+	townNamesFirst = {}
+	townsFirstFile = "hometownFirst.txt"
+	if townsFirstFile then
+	    for line in love.filesystem.lines(townsFirstFile) do
+	        townNamesFirst[#townNamesFirst+1] = line
+	    end
+	else
+		print("no file")
+	end
+
+	townNamesLast = {}
+	townsLastFile = "hometownLast.txt"
+	if townsLastFile then
+	    for line in love.filesystem.lines(townsLastFile) do
+	        townNamesLast[#townNamesLast+1] = line
+	    end
+	else
+		print("no file")
+	end
 	
 	player = generateRassler()
 	opponent = generateRassler()
@@ -147,6 +168,13 @@ function love.load()
 	match_history = {}
 	
 	match = {}
+
+	territories = {}
+	bookers = {}
+
+	generateTerritory()
+	generateTerritory()
+	generateTerritory()
 end
 
 function generateRassler()
@@ -175,6 +203,81 @@ function generateRassler()
 	return rassler
 end
 
+function generateBooker()
+	booker = {}
+
+	booker['name'] = generateRasslerName()
+	booker['payoffs'] = math.random(1,10)
+	booker['scouting'] = math.random(1,10)
+	booker['promotion'] = math.random(1,10)
+	booker['personality'] = math.random(1,10)
+
+	return booker
+end
+
+function drawDebugScreen()
+	love.graphics.setFont(statFont)
+	local offset = 10
+	for i = 1, #territories do
+		love.graphics.printf( territories[i].name .. ' - pop' .. territories[i].popularity .. ' - size' .. territories[i].size .. ' - ' .. territories[i].fans .. 'fans - ' .. territories[i].booker.name .. ' - ' .. territories[i].booker.payoffs .. ' - ' .. territories[i].booker.scouting .. ' - ' .. territories[i].booker.promotion .. ' - ' .. territories[i].booker.personality, 10, offset, 690, "left" )
+		offset = offset + 40
+	end
+end
+
+function drawTerritorySelectScreen()
+	love.graphics.setColor(200,200,200)
+	love.graphics.rectangle('fill', 0, 50 + ((current_territory_choice-1) * 150), 800, 150)
+	love.graphics.setColor(255,255,255)
+	love.graphics.setFont(mainFont)
+	centerText(30, 'Choose Starting Territory', 15)
+	love.graphics.setFont(statFont)
+	love.graphics.print("Up/Down: Select territory. Enter: Do It", 90,550)
+
+	local start = 60
+	local offset = 10
+	for i = 1, #territories do
+		love.graphics.setColor(0,0,0)
+		love.graphics.setFont(mainFont)
+		love.graphics.print(territories[i].name, 40, start + offset)
+		offset = offset + 40
+		love.graphics.setFont(statFont)
+		love.graphics.print('Booker: ' .. territories[i].booker.name, 40, start + offset)
+		offset = offset + 40
+
+		love.graphics.print('Popularity:', 40, start + offset)
+		love.graphics.print('Payoffs:', 230, start + offset)
+		love.graphics.print('Fans:', 400, start + offset)
+		love.graphics.print('Size:', 500, start + offset)
+		offset = offset + 20
+
+		love.graphics.setColor(255,255,255)
+		love.graphics.rectangle('fill', 40, start + offset, 100, 20)
+		love.graphics.rectangle('fill', 230, start + offset, 100, 20)
+		love.graphics.rectangle('fill', 500, start + offset, 100, 20)
+		love.graphics.setColor(0,255,0)
+		love.graphics.rectangle('fill', 40, start + offset, territories[i].popularity * 10, 20)
+		love.graphics.rectangle('fill', 230, start + offset, territories[i].booker.payoffs * 10, 20)
+		love.graphics.rectangle('fill', 500, start + offset, territories[i].size * 25, 20)
+		love.graphics.setColor(0,0,0)
+		love.graphics.print(territories[i].fans, 400, start + offset)
+		offset = offset + 50
+	end
+end
+
+function generateTerritory()
+	territory = {}
+
+	territory['name'] = generateTerritoryName()
+
+	local booker = generateBooker()
+	territory['booker'] = booker
+	territory['popularity'] = math.random(1,12)
+	territory['size'] = math.random(1,4)
+	territory['fans'] = math.random(25, territory['popularity'] * (territory['size'] * 50))
+
+	territories[#territories+1] =  territory
+end
+
 function savePlayerStatus()
 	--assert( table.save( MATCHES, "save1.lua" ) == nil )
 end
@@ -188,6 +291,10 @@ function love.draw()
 
 	if CURRENT_SCREEN == "title" then
 		drawTitleScreen()
+	end
+
+	if CURRENT_SCREEN == "territorySelect" then
+		drawTerritorySelectScreen()
 	end
 
 	if CURRENT_SCREEN == "start" then
@@ -237,10 +344,6 @@ function love.draw()
 	if CURRENT_SCREEN == "randomMatchEvent" then
 		drawRandomEventScreen(CURRENT_RANDOM_EVENT)
 	end
-end
-
-function drawDebugScreen()
-	
 end
 
 function drawRandomEventScreen(event)
@@ -372,7 +475,7 @@ function drawCardScreen()
 	love.graphics.rectangle("fill", 0, 440, window_width, 65)
 	love.graphics.setColor(255,255,255,255)
 	love.graphics.setFont(secondaryFont);
-	centerText(20,"At the " .. match.venue, 450)
+	centerText(20,"At the " .. match.venue .. ', ' .. territories[CURRENT_TERRITORY].name, 450)
 	centerText(20,"Capacity: " .. match.capacity, 480)
 	
 	love.graphics.setColor(255,255,255,255)
@@ -390,7 +493,11 @@ function makeMatch()
 
 	venue = generateVenue()
 	capacity = math.floor(generateCapacity())
-	attendence = math.floor(math.random(capacity/10,capacity))
+	attendence = math.floor( ((territories[CURRENT_TERRITORY].fans) * (territories[CURRENT_TERRITORY].popularity * 0.1)) )
+
+	if attendence > capacity then
+		attendence = capacity
+	end
 	
 	opponent = newOpponent
 
@@ -706,56 +813,74 @@ end
 
 function drawStartScreen()
 	
+	-- RasslerCard front primary background
 	love.graphics.setColor(50,50,50)
-	love.graphics.rectangle( "fill", 20, 130, 320, 330 )
-	love.graphics.setColor(240,240,240)
-	love.graphics.rectangle( "fill", 20, 370, 320, 90 )
-	love.graphics.setColor(10,10,10)
-	love.graphics.rectangle( "fill", 20, 410, 320, 50 )
-	love.graphics.setColor(0,255,255)
-	love.graphics.rectangle( "fill", 20, 130, 10, 20 )
-	love.graphics.setColor(255,0,255)
-	love.graphics.rectangle( "fill", 30, 130, 10, 20 )
-	love.graphics.setColor(0,0,0)
-	love.graphics.rectangle( "fill", 40, 130, 300, 20 )
+	love.graphics.rectangle( "fill", 20, 60, 320, 445 )
 
-	love.graphics.setColor(50,50,50)
-	love.graphics.rectangle( "fill", 380, 130, 320, 330 )
+	-- RasslerCard front bottom primary bg
 	love.graphics.setColor(240,240,240)
-	love.graphics.rectangle( "fill", 20, 370, 320, 90 )
+	love.graphics.rectangle( "fill", 20, 410, 320, 95 )
+
+	-- RasslerCard front bottom secondary color
 	love.graphics.setColor(10,10,10)
-	love.graphics.rectangle( "fill", 20, 410, 320, 50 )
+	love.graphics.rectangle( "fill", 20, 455, 320, 50 )
+
+	-- RasslerCard top logo left color
 	love.graphics.setColor(0,255,255)
-	love.graphics.rectangle( "fill", 20, 130, 10, 20 )
+	love.graphics.rectangle( "fill", 20, 60, 10, 30 )
+
+	-- RasslerCard top logo right color
 	love.graphics.setColor(255,0,255)
-	love.graphics.rectangle( "fill", 30, 130, 10, 20 )
+	love.graphics.rectangle( "fill", 30, 60, 10, 30 )
+
+	-- RasslerCard top stripe
 	love.graphics.setColor(0,0,0)
-	love.graphics.rectangle( "fill", 40, 130, 300, 20 )
+	love.graphics.rectangle( "fill", 40, 60, 300, 30 )
+
+	-- RasslerCard back primary bg
+	love.graphics.setColor(50,50,50)
+--	love.graphics.rectangle( "fill", 380, 120, 320, 310 )
+
+	love.graphics.setColor(240,240,240)
+--	love.graphics.rectangle( "fill", 20, 370, 320, 90 )
+	
+	love.graphics.setColor(10,10,10)
+--	love.graphics.rectangle( "fill", 20, 410, 320, 50 )
+	
+	love.graphics.setColor(0,255,255)
+--	love.graphics.rectangle( "fill", 20, 130, 10, 20 )
+	
+	love.graphics.setColor(255,0,255)
+--	love.graphics.rectangle( "fill", 30, 130, 10, 20 )
+	
+	love.graphics.setColor(0,0,0)
+--	love.graphics.rectangle( "fill", 40, 130, 300, 20 )
 
 	love.graphics.setColor(0,0,0)
 	love.graphics.setColor(255,255,255)
 	love.graphics.setFont(mainFont)
-	love.graphics.print("So you wanna be a", 20, 20)
-	love.graphics.print("wrestler, huh?", 20, 60)
+	love.graphics.print("Wrestler (de)Generation", 20, 20)
 	--love.graphics.print("Alright kid, here's what", 20, 120)
 	--love.graphics.print("we came up with for you.", 20, 160)
 	
 
 	love.graphics.setFont(tinyFont)
-	love.graphics.print("RassleCards", 45, 135)
+	love.graphics.print("RassleCards", 50, 70)
 
 	love.graphics.setFont(statFont)
-	love.graphics.print("Health", 420, 150)
-	love.graphics.print("/ Max", 540, 150)
+	love.graphics.print("Health", 420, 140)
+	love.graphics.print("/ Max", 540, 140)
 	love.graphics.print("Skill", 420, 210)
 	love.graphics.print("Money", 540, 210)
 	love.graphics.print("Favorite move:", 420, 280)
+	--love.graphics.print("Hometown:", 420, 380)
 	
-	love.graphics.print(player.health, 420, 170)
-	love.graphics.print("/ " .. player.max_health, 540, 170)
+	love.graphics.print(player.health, 420, 160)
+	love.graphics.print("/ " .. player.max_health, 540, 160)
 	love.graphics.print(player.skill, 420, 230)
 	love.graphics.print(player.money, 540, 230)
 	love.graphics.printf( player.favorite_move, 420, 310, 270, "left" )
+	--love.graphics.printf( player.hometown, 420, 410, 270, "left" )
 
 	love.graphics.setFont(mainFont)
 	love.graphics.setColor(255,255,255,255)
@@ -766,12 +891,12 @@ function drawStartScreen()
 	love.graphics.setColor(255,255,255)
 	newFont = love.graphics.newFont("prstart.ttf",autoScaleTextToWidthWithMax(player.name, 300, 24));
 	love.graphics.setFont(newFont, 300);
-	love.graphics.print(player.name, 30, 425)
+	love.graphics.print(player.name, 30, 475)
 
 	love.graphics.setColor(0,0,0)
 	newFont = love.graphics.newFont("prstart.ttf",autoScaleTextToWidthWithMax(player.nickname, 300, 16));
 	love.graphics.setFont(newFont, 300);
-	love.graphics.print("'" .. player.nickname .. "'", 30, 385)
+	love.graphics.print("'" .. player.nickname .. "'", 30, 430)
 	
 	love.graphics.setFont(mainFont)
 	love.graphics.setColor(255,255,255,255)
@@ -795,6 +920,10 @@ function love.keyreleased(key)
    
 end
 
+function love.mousepressed(x, y, button, istouch)
+	--love.system.openURL("https://philnelson.itch.io/rassler")
+end
+
 function handleKeyPress(key, currentScreen)
 	
 	if key == "d" then
@@ -802,7 +931,8 @@ function handleKeyPress(key, currentScreen)
 	end
 
 	if key == "p" then
-
+		local screenshot = love.graphics.newScreenshot();
+    	screenshot:encode('png', 'screenshot_' .. os.time() .. '.png');
 	end
 	
 	if key == "return" then
@@ -814,12 +944,8 @@ function handleKeyPress(key, currentScreen)
 			CURRENT_SCREEN = "start"
 		end
 		if currentScreen == "start" then
-			match = makeMatch()
-
-			current_work_mode = 1
-			matchBell:setVolume(0.1)
-			matchBell:play()
-			CURRENT_SCREEN = "card"
+			current_territory_choice = 1
+			CURRENT_SCREEN = "territorySelect"
 		end
 		if currentScreen == "card" then
 			MATCHES[#MATCHES+1] = {screen = currentScreen, health = player.health, popularity = player.popularity, skill = player.skill, age = player.age, money = player.money, match = match, opponent=opponent}
@@ -1002,6 +1128,19 @@ function handleKeyPress(key, currentScreen)
 	 		CURRENT_SCREEN = "prematch"
 	 	end
 
+	 	if currentScreen == "territorySelect" then
+	 		CURRENT_TERRITORY = current_territory_choice
+
+	 		match = makeMatch()
+
+			current_work_mode = 1
+			matchBell:setVolume(0.1)
+			matchBell:play()
+
+			
+	 		CURRENT_SCREEN = "card"
+	 	end
+
 		if currentScreen == "randomEvent" then
 			current_activity_choice = 1
 	 		CURRENT_SCREEN = RETURN_TO
@@ -1125,6 +1264,14 @@ function handleKeyPress(key, currentScreen)
   			   current_activity_choice = 5
   		   end
 		end
+
+		if currentScreen == "territorySelect" then
+			if current_territory_choice > 1 then
+  			   current_territory_choice = current_territory_choice - 1
+  		   else
+  			   current_territory_choice = #territories
+  		   end	
+		end
 	end
 
 	if key == "down" then
@@ -1151,6 +1298,14 @@ function handleKeyPress(key, currentScreen)
   			   current_activity_choice = 1
   		   end	
 		end
+
+		if currentScreen == "territorySelect" then
+			if current_territory_choice < #territories then
+  			   current_territory_choice = current_territory_choice + 1
+  		   else
+  			   current_territory_choice = 1
+  		   end	
+		end
 	end
 
 	if key == "escape" then
@@ -1162,7 +1317,7 @@ end
 
 function generateRasslerNickname()
 
-	name_style = math.random(1,4)
+	name_style = math.random(1,3)
 
 	nickfirst = math.random(1,tablelength(nicknamesFirst))
 	nicklast = nickfirst
@@ -1172,22 +1327,70 @@ function generateRasslerNickname()
 	end
 
 	if name_style == 1 then
-		nickname = nicknamesFirst[nickfirst] .. ' ' .. nicknamesLast[nicklast]
-	end
-
-	if name_style == 2 then
 		nickname = "The " .. nicknamesFirst[nickfirst] .. ' ' .. nicknamesLast[nicklast]
 	end
 
-	if name_style == 3 then
+	if name_style == 2 then
 		nickname = nicknamesFirst[nickfirst]
 	end
 
-	if name_style == 4 then
+	if name_style == 3 then
 		nickname = "The " .. nicknamesLast[nicklast]
 	end
 
 	return nickname
+end
+
+function generateTerritoryName()
+
+	local canUse = true
+
+	while canUse == true do
+		name_style = math.random(1,7)
+
+		townFirst = math.random(1,tablelength(townNamesFirst))
+		townLast = townFirst
+
+		while townFirst == townLast do
+			townLast = math.random(1,tablelength(townNamesLast))
+		end
+
+		if name_style == 1 then
+			townName = townNamesFirst[townFirst] .. townNamesLast[townLast]
+		end
+
+		if name_style == 2 then
+			townName = 'New ' .. townNamesFirst[townFirst] .. townNamesLast[townLast]
+		end
+
+		if name_style == 3 then
+			townName = 'El ' .. townNamesFirst[townFirst]
+		end
+
+		if name_style == 4 then
+			townName = 'San ' .. townNamesFirst[townFirst]
+		end
+
+		if name_style == 5 then
+			townName = 'North ' .. townNamesFirst[townFirst]
+		end
+
+		if name_style == 6 then
+			townName = 'East ' .. townNamesFirst[townFirst]
+		end
+
+		if name_style == 7 then
+			townName = 'New ' .. townNamesFirst[townFirst]
+		end
+
+		for i = 1, #territories do
+			if territories[i].name == townName then
+				canUse = false
+			end
+		end
+
+		return townName
+	end
 end
 
 function generateFavoriteMove()
