@@ -15,9 +15,9 @@ PRE_ACTIVITIES[4] = {name = "Stay in", health = 1, money = -5, max_health = 0, p
 PRE_ACTIVITIES[5] = {name = "Retire", health = 0, money = 0, max_health = 0, popularity = 0}
 
 WORK_MODES = {}
-WORK_MODES[1] = {name = "Go All Out", health = 20, popularity = 8}
-WORK_MODES[2] = {name = "Normal", health = 12, popularity = 4}
-WORK_MODES[3] = {name = "Take It Easy", health = 6, popularity = 2}
+WORK_MODES[1] = {name = "Go All Out", health = 20, popularity = 7}
+WORK_MODES[2] = {name = "Normal", health = 12, popularity = 3}
+WORK_MODES[3] = {name = "Take It Easy", health = 6, popularity = 1}
 
 MATCHES = {}
 
@@ -414,6 +414,10 @@ function drawTitleScreen()
 	centerText(100,"RASSLER", 205)
 	love.graphics.setColor(255,0,255)
 	centerText(100,"RASSLER", 200)
+	love.graphics.setFont(statFont)
+	love.graphics.setColor(200,200,200,200)
+	centerText(20,"release 9", 310)
+
 
 	love.graphics.setFont(statFont)
 	love.graphics.setColor(255,255,255,255)
