@@ -15,9 +15,9 @@ PRE_ACTIVITIES[4] = {name = "Stay in", health = 1, money = -5, max_health = 0, p
 PRE_ACTIVITIES[5] = {name = "Retire", health = 0, money = 0, max_health = 0, popularity = 0}
 
 WORK_MODES = {}
-WORK_MODES[1] = {name = "Go All Out", health = 20, popularity = 20}
-WORK_MODES[2] = {name = "Normal", health = 12, popularity = 6}
-WORK_MODES[3] = {name = "Take It Easy", health = 6, popularity = 4}
+WORK_MODES[1] = {name = "Go All Out", health = 20, popularity = 8}
+WORK_MODES[2] = {name = "Normal", health = 12, popularity = 4}
+WORK_MODES[3] = {name = "Take It Easy", health = 6, popularity = 2}
 
 MATCHES = {}
 
@@ -475,7 +475,7 @@ function drawCardScreen()
 	love.graphics.rectangle("fill", 0, 440, window_width, 65)
 	love.graphics.setColor(255,255,255,255)
 	love.graphics.setFont(secondaryFont);
-	centerText(20,"At the " .. match.venue .. ', ' .. territories[CURRENT_TERRITORY].name, 450)
+	centerText(20,match.venue .. ', ' .. territories[CURRENT_TERRITORY].name, 450)
 	centerText(20,"Capacity: " .. match.capacity, 480)
 	
 	love.graphics.setColor(255,255,255,255)
@@ -600,13 +600,13 @@ function drawResultScreen()
 	love.graphics.print(player.name , 40,460)
 
 	love.graphics.setColor(255,255,255)
-	love.graphics.draw(player_image,400, 250, 0, 0.8, 0.8)
+	love.graphics.draw(player_image,420, 250, 0, 0.8, 0.8)
 
 	love.graphics.setColor(0,0,0)
-	love.graphics.print("Health: ".. MATCHES[#MATCHES].health - MATCHES[#MATCHES-1].health, 400,380)
-	love.graphics.print("Fans: " .. MATCHES[#MATCHES].popularity - MATCHES[#MATCHES-1].popularity, 400,420)
+	love.graphics.print("Health: ".. MATCHES[#MATCHES].health - MATCHES[#MATCHES-1].health, 420,380)
+	love.graphics.print("Fans: " .. MATCHES[#MATCHES].popularity - MATCHES[#MATCHES-1].popularity, 420,420)
 
-	love.graphics.print("You were paid $" ..  math.floor(match.pay), 400,460)
+	love.graphics.print("You were paid $" ..  math.floor(match.pay), 420,460)
 	
 	love.graphics.setFont(mainFont)
 	love.graphics.setColor(255,255,255)
@@ -626,26 +626,26 @@ function drawMatchScreen()
 	
 	if current_work_mode == 1 then
 		love.graphics.setColor(255,255,255)
-		love.graphics.rectangle( "fill", 70, 320, 175, 30 )
+		love.graphics.rectangle( "fill", 30, 320, 175, 30 )
 		love.graphics.setColor(0,0,0)
 	end
 	
 	if current_work_mode == 2 then
 		love.graphics.setColor(255,255,255)
-		love.graphics.rectangle( "fill", 70, 350, 110, 30 )
+		love.graphics.rectangle( "fill", 30, 350, 110, 30 )
 		love.graphics.setColor(0,0,0)
 	end
 	
 	if current_work_mode == 3 then
 		love.graphics.setColor(255,255,255)
-		love.graphics.rectangle( "fill", 70, 380, 210, 30 )
+		love.graphics.rectangle( "fill", 30, 380, 210, 30 )
 		love.graphics.setColor(0,0,0)
 	end
 	
-	love.graphics.print("How do you want to wrestle this match?", 80,280)
-	love.graphics.print("Go All Out (Lose 1-" .. WORK_MODES[1].health .. " health, Gain most fans)", 80,330)
-	love.graphics.print("Normal (Lose 1-" .. WORK_MODES[2].health .. " health, Gain some fans)", 80,360)
-	love.graphics.print("Take It Easy (Lose 1-" .. WORK_MODES[3].health .. " , Gain fewest fans)", 80,390)
+	love.graphics.print("How do you want to wrestle this match?", 40,280)
+	love.graphics.print("Go All Out (Lose 1-" .. WORK_MODES[1].health .. " health, Gain most fans)", 40,330)
+	love.graphics.print("Normal (Lose 1-" .. WORK_MODES[2].health .. " health, Gain some fans)", 40,360)
+	love.graphics.print("Take It Easy (Lose 1-" .. WORK_MODES[3].health .. " , Gain fewest fans)", 40,390)
 	
 	love.graphics.print("Up/Down: Select option. Enter: Do It", 100,560)
 	
@@ -812,14 +812,10 @@ function drawNewDayScreen()
 end
 
 function drawStartScreen()
-	
-	-- RasslerCard front primary background
-	love.graphics.setColor(50,50,50)
-	love.graphics.rectangle( "fill", 20, 60, 320, 445 )
 
 	-- RasslerCard front bottom primary bg
 	love.graphics.setColor(240,240,240)
-	love.graphics.rectangle( "fill", 20, 410, 320, 95 )
+	love.graphics.rectangle( "fill", 20, 60, 320, 400 )
 
 	-- RasslerCard front bottom secondary color
 	love.graphics.setColor(10,10,10)
@@ -836,6 +832,9 @@ function drawStartScreen()
 	-- RasslerCard top stripe
 	love.graphics.setColor(0,0,0)
 	love.graphics.rectangle( "fill", 40, 60, 300, 30 )
+
+	love.graphics.setColor(50,50,50)
+	love.graphics.rectangle( "fill", 40, 110, 280, 300 )
 
 	-- RasslerCard back primary bg
 	love.graphics.setColor(50,50,50)
@@ -889,12 +888,12 @@ function drawStartScreen()
 	love.graphics.setColor(0,0,0,255)
 	
 	love.graphics.setColor(255,255,255)
-	newFont = love.graphics.newFont("prstart.ttf",autoScaleTextToWidthWithMax(player.name, 300, 24));
+	newFont = love.graphics.newFont("prstart.ttf",autoScaleTextToWidthWithMax(player.name, 320, 24));
 	love.graphics.setFont(newFont, 300);
-	love.graphics.print(player.name, 30, 475)
+	love.graphics.print(player.name, 30, 470)
 
 	love.graphics.setColor(0,0,0)
-	newFont = love.graphics.newFont("prstart.ttf",autoScaleTextToWidthWithMax(player.nickname, 300, 16));
+	newFont = love.graphics.newFont("prstart.ttf",autoScaleTextToWidthWithMax(player.nickname, 320, 16));
 	love.graphics.setFont(newFont, 300);
 	love.graphics.print("'" .. player.nickname .. "'", 30, 430)
 	
@@ -983,13 +982,17 @@ function handleKeyPress(key, currentScreen)
 			end
 
 			-- Check if we gain any fans at all, or if we shit the bed.
-			if (math.random(1,20) + skill_bonus) > 10 then
+			if (math.random(1,20) + skill_bonus) > 0 then
 				-- Gain fans
 				while popularity_change == false do
 					-- This is causing an infinite loop.
-					popularity_roll = math.random(1, WORK_MODES[current_work_mode].popularity) + pop_bonus
+					popularity_roll = math.random(pop_bonus + WORK_MODES[current_work_mode].popularity, 20)
 
-					fake_fans = math.floor(potential_fans/100) * popularity_roll
+					if popularity_roll > 10 then
+						fake_fans = math.floor(potential_fans * (WORK_MODES[current_work_mode].popularity * 0.1))
+					else
+						fake_fans = math.floor(potential_fans * (WORK_MODES[current_work_mode].popularity * 0.01))
+					end
 
 					popularity_change = fake_fans
 				end
