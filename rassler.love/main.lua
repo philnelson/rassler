@@ -1,50 +1,49 @@
-CURRENT_SCREEN = "title"
-RETURN_TO = false
-ACTIVITIES = {}
-ACTIVITIES[1] = {name = "Take drugs", health = 6, money = -40, max_health = -6, popularity = 0}
-ACTIVITIES[2] = {name = "Hit the town", health = -6, money = -40, max_health = -1, popularity = 5}
-ACTIVITIES[3] = {name = "Work night shift", health = -6, money = 20, max_health = 0, popularity = 0}
-ACTIVITIES[4] = {name = "Stay in", health = 1, money = -5, max_health = 0, popularity = 0}
-ACTIVITIES[5] = {name = "Retire", health = 0, money = 0, max_health = 0, popularity = 0}
-
-PRE_ACTIVITIES = {}
-PRE_ACTIVITIES[1] = {name = "Take drugs", health = 6, money = -40, max_health = -6, popularity = 0}
-PRE_ACTIVITIES[2] = {name = "Hit the town", health = -6, money = -40, max_health = -1, popularity = 5}
-PRE_ACTIVITIES[3] = {name = "Hit the gym", health = 6, money = -60, max_health = 0, popularity = 0}
-PRE_ACTIVITIES[4] = {name = "Stay in", health = 1, money = -5, max_health = 0, popularity = 0}
-PRE_ACTIVITIES[5] = {name = "Retire", health = 0, money = 0, max_health = 0, popularity = 0}
-
-WORK_MODES = {}
-WORK_MODES[1] = {name = "Go All Out", health = 20, popularity = 7}
-WORK_MODES[2] = {name = "Normal", health = 12, popularity = 3}
-WORK_MODES[3] = {name = "Take It Easy", health = 6, popularity = 1}
-
-MATCHES = {}
-
-RANDOM_GYM_EVENTS = {}
-RANDOM_GYM_EVENTS[1] = {title="Street Fight", description="You got blindsided by a 'fan' at the gym, and were beaten pretty badly. Then you noticed your wallet was lighter... ", health = -10, money = "-half", max_health = -2, popularity = -10, skill=0}
-RANDOM_GYM_EVENTS[2] = {title="Workout Groove", description="You're in a groove with your workout. Your maximum health is slightly increased.", health = 1, money = 0, max_health = 1, popularity = 0, skill=0}
-RANDOM_GYM_EVENTS[3] = {title="Mild Injury", description="You sprained your ankle in training. Your max health went down slightly.", health = -1, money = 0, max_health = -1, popularity = 0, skill=0}
-RANDOM_GYM_EVENTS[4] = {title="Stolen Passport", description="Some jerk stole your passport and took a bunch of your money.", health = 0, money = "-half", max_health = 0, popularity = 0, skill=0}
-RANDOM_GYM_EVENTS[5] = {title="Arm Wrestling Champ", description="You won an arm wrestling competition at the gym.", health = 0, money = 50, max_health = 0, popularity = 5, skill=0}
-RANDOM_GYM_EVENTS[6] = {title="Good Trainer", description="You've got a new trainer. They're helping you a lot.", health = 0, money = 0, max_health = 2, popularity = 0, skill=1}
-RANDOM_GYM_EVENTS[7] = {title="New Sponsor", description="You got a new sponsor due to your gym prowess.", health = 0, money = 100, max_health = 0, popularity = 10, skill=0}
-
-
-RANDOM_MATCH_EVENTS = {}
-RANDOM_MATCH_EVENTS[1] = {title="Mild Injury", description="You pulled a muscle in the match. It'll be sore for awhile.", health = -10, money = 0, max_health = -2, popularity = 0, skill=0}
-RANDOM_MATCH_EVENTS[2] = {title="Great Match", description="You really stole the show out there tonight. The crowd loved it.", health = 0, money = 0, max_health = 0, popularity = 5, skill=0}
-RANDOM_MATCH_EVENTS[3] = {title="Bad Match", description="You stunk up the joint out there. The people did not like what they saw.", health = 0, money = 0, max_health = 0, popularity = -5, skill=0}
-RANDOM_MATCH_EVENTS[4] = {title="Something Clicked", description="You can't explain it, but you just feel more comfortable in the ring.", health = 0, money = 0, max_health = 0, popularity = 1, skill=5}
-RANDOM_MATCH_EVENTS[5] = {title="Serious Injury", description="Your opponnent dropped you hard on your neck. You're hurt pretty bad.", health = -30, money = 0, max_health = -10, popularity = 0, skill=0}
-
-CURRENT_RANDOM_EVENT = false
-CURRENT_RANDOM_MATCH_EVENT = false
-CURRENT_TERRITORY = 0
-
 -- TODO: Add randomMoveName and a move names list to make characters more deep. Each generated characer will have a finisher. Also used on random events.
 
 function love.load()
+	CURRENT_SCREEN = "title"
+	RETURN_TO = false
+	ACTIVITIES = {}
+	ACTIVITIES[1] = {name = "Take drugs", health = 6, money = -40, max_health = -6, popularity = 0}
+	ACTIVITIES[2] = {name = "Hit the town", health = -6, money = -40, max_health = -1, popularity = 5}
+	ACTIVITIES[3] = {name = "Work night shift", health = -6, money = 20, max_health = 0, popularity = 0}
+	ACTIVITIES[4] = {name = "Stay in", health = 1, money = -5, max_health = 0, popularity = 0}
+	ACTIVITIES[5] = {name = "Retire", health = 0, money = 0, max_health = 0, popularity = 0}
+
+	PRE_ACTIVITIES = {}
+	PRE_ACTIVITIES[1] = {name = "Take drugs", health = 6, money = -40, max_health = -6, popularity = 0}
+	PRE_ACTIVITIES[2] = {name = "Hit the town", health = -6, money = -40, max_health = -1, popularity = 5}
+	PRE_ACTIVITIES[3] = {name = "Hit the gym", health = 6, money = -60, max_health = 0, popularity = 0}
+	PRE_ACTIVITIES[4] = {name = "Stay in", health = 1, money = -5, max_health = 0, popularity = 0}
+	PRE_ACTIVITIES[5] = {name = "Retire", health = 0, money = 0, max_health = 0, popularity = 0}
+
+	WORK_MODES = {}
+	WORK_MODES[1] = {name = "Go All Out", health = 20, popularity = 7}
+	WORK_MODES[2] = {name = "Normal", health = 12, popularity = 3}
+	WORK_MODES[3] = {name = "Take It Easy", health = 6, popularity = 1}
+
+	MATCHES = {}
+
+	RANDOM_GYM_EVENTS = {}
+	RANDOM_GYM_EVENTS[1] = {title="Street Fight", description="You got blindsided by a 'fan' at the gym, and were beaten pretty badly. Then you noticed your wallet was lighter... ", health = -10, money = "-half", max_health = -2, popularity = -10, skill=0}
+	RANDOM_GYM_EVENTS[2] = {title="Workout Groove", description="You're in a groove with your workout. Your maximum health is slightly increased.", health = 1, money = 0, max_health = 1, popularity = 0, skill=0}
+	RANDOM_GYM_EVENTS[3] = {title="Mild Injury", description="You sprained your ankle in training. Your max health went down slightly.", health = -1, money = 0, max_health = -1, popularity = 0, skill=0}
+	RANDOM_GYM_EVENTS[4] = {title="Stolen Passport", description="Some jerk stole your passport and took a bunch of your money.", health = 0, money = "-half", max_health = 0, popularity = 0, skill=0}
+	RANDOM_GYM_EVENTS[5] = {title="Arm Wrestling Champ", description="You won an arm wrestling competition at the gym.", health = 0, money = 50, max_health = 0, popularity = 5, skill=0}
+	RANDOM_GYM_EVENTS[6] = {title="Good Trainer", description="You've got a new trainer. They're helping you a lot.", health = 0, money = 0, max_health = 2, popularity = 0, skill=1}
+	RANDOM_GYM_EVENTS[7] = {title="New Sponsor", description="You got a new sponsor due to your gym prowess.", health = 0, money = 100, max_health = 0, popularity = 10, skill=0}
+
+
+	RANDOM_MATCH_EVENTS = {}
+	RANDOM_MATCH_EVENTS[1] = {title="Mild Injury", description="You pulled a muscle in the match. It'll be sore for awhile.", health = -10, money = 0, max_health = -2, popularity = 0, skill=0}
+	RANDOM_MATCH_EVENTS[2] = {title="Great Match", description="You really stole the show out there tonight. The crowd loved it.", health = 0, money = 0, max_health = 0, popularity = 5, skill=0}
+	RANDOM_MATCH_EVENTS[3] = {title="Bad Match", description="You stunk up the joint out there. The people did not like what they saw.", health = 0, money = 0, max_health = 0, popularity = -5, skill=0}
+	RANDOM_MATCH_EVENTS[4] = {title="Something Clicked", description="You can't explain it, but you just feel more comfortable in the ring.", health = 0, money = 0, max_health = 0, popularity = 1, skill=5}
+	RANDOM_MATCH_EVENTS[5] = {title="Serious Injury", description="Your opponnent dropped you hard on your neck. You're hurt pretty bad.", health = -30, money = 0, max_health = -10, popularity = 0, skill=0}
+
+	CURRENT_RANDOM_EVENT = false
+	CURRENT_RANDOM_MATCH_EVENT = false
+	CURRENT_TERRITORY = 0
 	--love.filesystem.load( "table.save-1.0.lua" )()
 
 	window_width = 800
@@ -1164,7 +1163,14 @@ function handleKeyPress(key, currentScreen)
 
 	 		can_do_activity = false
 
-	 		if (player.money - PRE_ACTIVITIES[current_activity_choice].money) > 0 then
+	 		if (PRE_ACTIVITIES[current_activity_choice].money < 0) then
+		 		money_comparison = player.money - math.abs(PRE_ACTIVITIES[current_activity_choice].money)
+		 	else
+		 		money_comparison = player.money + PRE_ACTIVITIES[current_activity_choice].money
+		 	end
+
+		 	-- Can we afford this?
+	 		if money_comparison > 0 then
 
 	 			-- Does this damage our health?
 	 			if (PRE_ACTIVITIES[current_activity_choice].health < 0) then
