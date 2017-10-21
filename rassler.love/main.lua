@@ -1,7 +1,6 @@
 -- TODO: Add randomMoveName and a move names list to make characters more deep. Each generated characer will have a finisher. Also used on random events.
 
 function love.load()
-	CURRENT_SCREEN = "title"
 	RETURN_TO = false
 	ACTIVITIES = {}
 	ACTIVITIES[1] = {name = "Take drugs", health = 6, money = -40, max_health = -6, popularity = 0}
@@ -56,8 +55,7 @@ function love.load()
 	headlineFont = love.graphics.newFont("prstart.ttf",26)
 	statFont = love.graphics.newFont("prstart.ttf",16)
 	tinyFont = love.graphics.newFont("prstart.ttf",12)
-	
-	bass_bg = love.audio.newSource("sounds/bass background.ogg")
+
 	matchBell = love.audio.newSource("sounds/matchBell.ogg")
 	badChoice = love.audio.newSource("sounds/badChoice.ogg")
 
@@ -71,95 +69,23 @@ function love.load()
 	
 	rasslers = 22
 
-	nicknamesFirst = {}
-	nicknameFirstFile = "nickFirst.txt"
-	if nicknameFirstFile then
-	    for line in love.filesystem.lines(nicknameFirstFile) do
-	        nicknamesFirst[#nicknamesFirst+1] = line
-	    end
-	else
-		print("no file")
-	end
+	nicknamesFirst = loadFileAsTable("nickFirst.txt")
 
-	nicknamesLast = {}
-	nicknameLastFile = "nickLast.txt"
-	if nicknameLastFile then
-	    for line in love.filesystem.lines(nicknameLastFile) do
-	        nicknamesLast[#nicknamesLast+1] = line
-	    end
-	else
-		print("no file")
-	end
+	nicknamesLast = loadFileAsTable("nickLast.txt")
 
-	namesFirst = {}
-	namesFirstFile = "namesFirst.txt"
-	if namesFirstFile then
-	    for line in love.filesystem.lines(namesFirstFile) do
-	        namesFirst[#namesFirst+1] = line
-	    end
-	else
-		print("no file")
-	end
+	namesFirst = loadFileAsTable("namesFirst.txt")
 
-	namesLast = {}
-	namesLastFile = "namesLast.txt"
-	if namesLastFile then
-	    for line in love.filesystem.lines(namesLastFile) do
-	        namesLast[#namesLast+1] = line
-	    end
-	else
-		print("no file")
-	end
+	namesLast = loadFileAsTable("namesLast.txt")
 
-	moveNamesFirst = {}
-	movesFirstFile = "movesFirst.txt"
-	if movesFirstFile then
-	    for line in love.filesystem.lines(movesFirstFile) do
-	        moveNamesFirst[#moveNamesFirst+1] = line
-	    end
-	else
-		print("no file")
-	end
+	moveNamesFirst = loadFileAsTable("movesFirst.txt")
 
-	moveNamesLast = {}
-	movesLastFile = "movesLast.txt"
-	if movesLastFile then
-	    for line in love.filesystem.lines(movesLastFile) do
-	        moveNamesLast[#moveNamesLast+1] = line
-	    end
-	else
-		print("no file")
-	end
+	moveNamesLast = loadFileAsTable("movesLast.txt")
 
-	moveNamesMods = {}
-	movesModFile = "movesModifier.txt"
-	if movesModFile then
-	    for line in love.filesystem.lines(movesModFile) do
-	        moveNamesMods[#moveNamesMods+1] = line
-	    end
-	else
-		print("no file")
-	end
+	moveNamesMods = loadFileAsTable("movesModifier.txt")
 
-	townNamesFirst = {}
-	townsFirstFile = "hometownFirst.txt"
-	if townsFirstFile then
-	    for line in love.filesystem.lines(townsFirstFile) do
-	        townNamesFirst[#townNamesFirst+1] = line
-	    end
-	else
-		print("no file")
-	end
+	townNamesFirst = loadFileAsTable("hometownFirst.txt")
 
-	townNamesLast = {}
-	townsLastFile = "hometownLast.txt"
-	if townsLastFile then
-	    for line in love.filesystem.lines(townsLastFile) do
-	        townNamesLast[#townNamesLast+1] = line
-	    end
-	else
-		print("no file")
-	end
+	townNamesLast = loadFileAsTable("hometownLast.txt")
 	
 	player = generateRassler()
 	opponent = generateRassler()
@@ -174,6 +100,32 @@ function love.load()
 	generateTerritory()
 	generateTerritory()
 	generateTerritory()
+
+	CURRENT_SCREEN = "title"
+
+end
+
+function loadFileAsTable(fileName)
+
+	assert(love.filesystem.isFile(fileName))
+
+	print("Trying to load " .. fileName)
+
+	local_table = {}
+
+	file = love.filesystem.read(fileName)
+
+	print("Contents: " .. file)
+
+	if love.filesystem.isFile(fileName) then
+	    for line in file:gmatch("[^\r\n]+") do
+	        table.insert(local_table,line)
+	    end
+
+	    return local_table
+	else
+		print("no file")
+	end
 end
 
 function generateRassler()
@@ -1440,7 +1392,12 @@ end
 
 function generateRasslerName()
 	
-	return namesFirst[math.random(1,tablelength(namesFirst))] .. ' ' .. namesLast[math.random(1,tablelength(namesLast))]
+	if tablelength(namesFirst) == 0 or tablelength(namesLast) == 0 then
+		return "Joe Junkpan"
+	else
+		return namesFirst[math.random(1,tablelength(namesFirst))] .. ' ' .. namesLast[math.random(1,tablelength(namesLast))]
+	end
+	
 	
 end
 
