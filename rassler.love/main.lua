@@ -23,6 +23,8 @@ function love.load()
 
 	MATCHES = {}
 
+	EPHEMERAL_MESSAGES = {}
+
 	RANDOM_GYM_EVENTS = {}
 	RANDOM_GYM_EVENTS[1] = {title="Street Fight", description="You got blindsided by a 'fan' at the gym, and were beaten pretty badly. Then you noticed your wallet was lighter... ", health = -10, money = "-half", max_health = -2, popularity = -10, skill=0}
 	RANDOM_GYM_EVENTS[2] = {title="Workout Groove", description="You're in a groove with your workout. Your maximum health is slightly increased.", health = 1, money = 0, max_health = 1, popularity = 0, skill=0}
@@ -85,7 +87,9 @@ function love.load()
 
 	townNamesFirst = loadFileAsTable("hometownFirst.txt")
 
-	townNamesLast = loadFileAsTable("hometownLast.txt")
+	townNamesLastFirst = loadFileAsTable("hometownLastFirst.txt")
+
+	townNamesLastLast = loadFileAsTable("hometownLastLast.txt")
 	
 	player = generateRassler()
 	opponent = generateRassler()
@@ -97,11 +101,47 @@ function love.load()
 	territories = {}
 	bookers = {}
 
-	generateTerritory()
-	generateTerritory()
-	generateTerritory()
+	for i = 1, 3 do
+		territories[#territories+1] =  generateTerritory()
+	end
 
 	CURRENT_SCREEN = "title"
+
+	SCREENSHOT_MODE = false
+
+end
+
+function addEphemeralMessage(text)
+	EPHEMERAL_MESSAGES[#EPHEMERAL_MESSAGES+1] = {text = text, created_at=os.time(), length=4}
+end
+
+function drawEphemeralMessages()
+	love.graphics.setFont(statFont)
+
+	if #EPHEMERAL_MESSAGES > 0 then
+		love.graphics.setColor(0,0,0)
+		love.graphics.rectangle('fill', 0, 200, 800, 80)
+	end
+
+	
+	love.graphics.setColor(255,255,255)
+	for message = 1, #EPHEMERAL_MESSAGES do
+		if (os.time() - EPHEMERAL_MESSAGES[message].created_at) < EPHEMERAL_MESSAGES[message].length then
+			love.graphics.printf(EPHEMERAL_MESSAGES[message].text, 40, 210, 720, "left")
+		else
+			table.remove(EPHEMERAL_MESSAGES,message)
+		end
+	end
+end
+
+function saveScreenShot()
+
+	filename = "rassler_" .. os.time();
+	screenshot = love.graphics.newScreenshot( )
+	screenshot:encode('png', filename .. '.png');
+
+	dir = love.filesystem.getSaveDirectory( )
+	addEphemeralMessage("Saved as " .. dir .. "/" .. filename .. ".png", 4)
 
 end
 
@@ -226,7 +266,7 @@ function generateTerritory()
 	territory['size'] = math.random(1,4)
 	territory['fans'] = math.random(25, territory['popularity'] * (territory['size'] * 50))
 
-	territories[#territories+1] =  territory
+	return territory
 end
 
 function savePlayerStatus()
@@ -295,6 +335,8 @@ function love.draw()
 	if CURRENT_SCREEN == "randomMatchEvent" then
 		drawRandomEventScreen(CURRENT_RANDOM_EVENT)
 	end
+
+	drawEphemeralMessages()
 end
 
 function drawRandomEventScreen(event)
@@ -813,7 +855,10 @@ function drawStartScreen()
 	love.graphics.setColor(0,0,0)
 	love.graphics.setColor(255,255,255)
 	love.graphics.setFont(mainFont)
-	love.graphics.print("Wrestler (de)Generation", 20, 20)
+
+	if SCREENSHOT_MODE == false then
+		love.graphics.print("Wrestler (de)Generation", 20, 20)
+	end
 	--love.graphics.print("Alright kid, here's what", 20, 120)
 	--love.graphics.print("we came up with for you.", 20, 160)
 	
@@ -838,8 +883,11 @@ function drawStartScreen()
 
 	love.graphics.setFont(mainFont)
 	love.graphics.setColor(255,255,255,255)
-	centerText(30,"Press Space: New Rassler",520)
-	centerText(30,"Press Enter: Start", 560)
+
+	if SCREENSHOT_MODE == false then
+		centerText(30,"Press Space: New Rassler",520)
+		centerText(30,"Press Enter: Start", 560)
+	end
 	love.graphics.setColor(0,0,0,255)
 	
 	love.graphics.setColor(255,255,255)
@@ -882,6 +930,14 @@ function handleKeyPress(key, currentScreen)
 	
 	if key == "d" then
 		CURRENT_SCREEN = "debug"
+	end
+
+	if key == "s" then
+		if currentScreen == "start" then
+			SCREENSHOT_MODE = true
+			saveScreenShot()
+			SCREENSHOT_MODE = false
+		end
 	end
 
 	if key == "p" then
@@ -1203,6 +1259,12 @@ function handleKeyPress(key, currentScreen)
 		if currentScreen == "start" then
 			player = generateRassler()
 		end
+
+		if currentScreen == "territorySelect" then
+			territories[1] = generateTerritory()
+			territories[2] = generateTerritory()
+			territories[3] = generateTerritory()
+		end
 	end
 	
 	if key == "up" then
@@ -1311,41 +1373,23 @@ function generateTerritoryName()
 	local canUse = true
 
 	while canUse == true do
-		name_style = math.random(1,7)
+		name_style = math.random(1,2)
 
 		townFirst = math.random(1,tablelength(townNamesFirst))
-		townLast = townFirst
+		townLastFirst = townFirst
+		townLastLast = townFirst
 
-		while townFirst == townLast do
-			townLast = math.random(1,tablelength(townNamesLast))
+		while townFirst == townLastFirst do
+			townLastFirst = math.random(1,tablelength(townNamesLastFirst))
+			townLastLast = math.random(1,tablelength(townNamesLastLast))
 		end
 
 		if name_style == 1 then
-			townName = townNamesFirst[townFirst] .. townNamesLast[townLast]
+			townName = townNamesFirst[townFirst] .. " " .. townNamesLastFirst[townLastFirst] .. townNamesLastLast[townLastLast]
 		end
 
 		if name_style == 2 then
-			townName = 'New ' .. townNamesFirst[townFirst] .. townNamesLast[townLast]
-		end
-
-		if name_style == 3 then
-			townName = 'El ' .. townNamesFirst[townFirst]
-		end
-
-		if name_style == 4 then
-			townName = 'San ' .. townNamesFirst[townFirst]
-		end
-
-		if name_style == 5 then
-			townName = 'North ' .. townNamesFirst[townFirst]
-		end
-
-		if name_style == 6 then
-			townName = 'East ' .. townNamesFirst[townFirst]
-		end
-
-		if name_style == 7 then
-			townName = 'New ' .. townNamesFirst[townFirst]
+			townName = townNamesLastFirst[townLastFirst] .. townNamesLastLast[townLastLast]
 		end
 
 		for i = 1, #territories do
