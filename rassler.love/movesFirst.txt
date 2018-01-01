@@ -9,7 +9,6 @@ Tiger
 Face
 Brain
 Spine
-Finger
 Rooster
 Spleen
 Death
