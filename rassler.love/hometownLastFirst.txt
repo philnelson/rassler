@@ -8,3 +8,9 @@ Clover
 Cedar
 Shelby
 Green
+North
+South
+East
+West
+Ban
+Bar

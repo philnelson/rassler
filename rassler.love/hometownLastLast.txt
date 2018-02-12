@@ -10,5 +10,5 @@ land
 bend
 brook
 side
-bato
+wick
 way
