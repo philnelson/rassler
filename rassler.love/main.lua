@@ -1,3 +1,4 @@
+math.randomseed( tonumber(tostring(os.time()):reverse():sub(1,6)) )
 -- TODO: Add randomMoveName and a move names list to make characters more deep. Each generated characer will have a finisher. Also used on random events.
 
 function love.load()
@@ -21,6 +22,8 @@ function love.load()
 	WORK_MODES[2] = {name = "Normal", health = 12, popularity = 3}
 	WORK_MODES[3] = {name = "Take It Easy", health = 6, popularity = 1}
 
+	BUTTONS = {}
+
 	MATCHES = {}
 
 	EPHEMERAL_MESSAGES = {}
@@ -34,23 +37,21 @@ function love.load()
 	RANDOM_GYM_EVENTS[6] = {title="Good Trainer", description="You've got a new trainer. They're helping you a lot.", health = 0, money = 0, max_health = 2, popularity = 0, skill=1}
 	RANDOM_GYM_EVENTS[7] = {title="New Sponsor", description="You got a new sponsor due to your gym prowess.", health = 0, money = 100, max_health = 0, popularity = 10, skill=0}
 
-
 	RANDOM_MATCH_EVENTS = {}
 	RANDOM_MATCH_EVENTS[1] = {title="Mild Injury", description="You pulled a muscle in the match. It'll be sore for awhile.", health = -10, money = 0, max_health = -2, popularity = 0, skill=0}
 	RANDOM_MATCH_EVENTS[2] = {title="Great Match", description="You really stole the show out there tonight. The crowd loved it.", health = 0, money = 0, max_health = 0, popularity = 5, skill=0}
 	RANDOM_MATCH_EVENTS[3] = {title="Bad Match", description="You stunk up the joint out there. The people did not like what they saw.", health = 0, money = 0, max_health = 0, popularity = -5, skill=0}
-	RANDOM_MATCH_EVENTS[4] = {title="Something Clicked", description="You can't explain it, but you just feel more comfortable in the ring.", health = 0, money = 0, max_health = 0, popularity = 1, skill=5}
+	RANDOM_MATCH_EVENTS[4] = {title="Something Clicked", description="You can't explain it, but you just feel more comfortable in the ring now.", health = 0, money = 0, max_health = 0, popularity = 1, skill=5}
 	RANDOM_MATCH_EVENTS[5] = {title="Serious Injury", description="Your opponnent dropped you hard on your neck. You're hurt pretty bad.", health = -30, money = 0, max_health = -10, popularity = 0, skill=0}
+	RANDOM_MATCH_EVENTS[5] = {title="New Move", description="You got the hang of a new technique, and used it well in the match tonight.", health = 0, money = 0, max_health = 0, popularity = 2, skill=1}
 
 	CURRENT_RANDOM_EVENT = false
 	CURRENT_RANDOM_MATCH_EVENT = false
 	CURRENT_TERRITORY = 0
 	--love.filesystem.load( "table.save-1.0.lua" )()
 
-	window_width = 800
-	window_height = 600
-	math.randomseed( tonumber(tostring(os.time()):reverse():sub(1,6)) )
-	love.window.setMode( window_width, window_height )
+	window_width, window_height, window_flags = love.window.getMode( )
+
 	love.graphics.setDefaultFilter("nearest", "nearest", 0)
 	mainFont = love.graphics.newFont("prstart.ttf",30)
 	secondaryFont = love.graphics.newFont("prstart.ttf",20)
@@ -61,15 +62,12 @@ function love.load()
 	matchBell = love.audio.newSource("sounds/matchBell.ogg")
 	badChoice = love.audio.newSource("sounds/badChoice.ogg")
 
-	--bass_bg:setVolume(0.1)
-	--bass_bg:play()
-	--bass_bg:setLooping(true)
-
 	day = 1
 	
 	love.graphics.setFont(mainFont);
 	
-	rasslers = 22
+	-- Right now this just defines how many sprites there are- this is a real dumb way to do so, but it works great.
+	number_of_rassler_icons = 23
 
 	nicknamesFirst = loadFileAsTable("nickFirst.txt")
 
@@ -91,19 +89,23 @@ function love.load()
 
 	townNamesLastLast = loadFileAsTable("hometownLastLast.txt")
 	
-	player = generateRassler()
-	opponent = generateRassler()
-	
 	match_history = {}
 	
 	match = {}
 
 	territories = {}
+
+	championships = {}
+
 	bookers = {}
 
 	for i = 1, 3 do
 		territories[#territories+1] =  generateTerritory()
 	end
+
+	CURRENTLY_SELECTED_TERRITORY = 1
+
+	player = generateRassler(1)
 
 	CURRENT_SCREEN = "title"
 
@@ -122,7 +124,6 @@ function drawEphemeralMessages()
 		love.graphics.setColor(0,0,0)
 		love.graphics.rectangle('fill', 0, 200, 800, 80)
 	end
-
 	
 	love.graphics.setColor(255,255,255)
 	for message = 1, #EPHEMERAL_MESSAGES do
@@ -131,6 +132,23 @@ function drawEphemeralMessages()
 		else
 			table.remove(EPHEMERAL_MESSAGES,message)
 		end
+	end
+end
+
+function drawButtons()
+	for button = 1, #BUTTONS do
+
+		box_x = BUTTONS[button].x
+		text_x = BUTTONS[button].x+20
+		box_y = BUTTONS[button].y
+		text_y = BUTTONS[button].y
+		width = BUTTONS[button].width
+
+		love.graphics.setFont(mainFont)
+		love.graphics.setColor(0, 0, 255, 255)
+		love.graphics.rectangle( "fill", box_x, box_y, width, 46 )
+		love.graphics.setColor(255, 255, 255, 255)
+		love.graphics.print(BUTTONS[button].text, text_x, 11+text_y)
 	end
 end
 
@@ -155,7 +173,7 @@ function loadFileAsTable(fileName)
 
 	file = love.filesystem.read(fileName)
 
-	print("Contents: " .. file)
+	--print("Contents: " .. file)
 
 	if love.filesystem.isFile(fileName) then
 	    for line in file:gmatch("[^\r\n]+") do
@@ -164,11 +182,11 @@ function loadFileAsTable(fileName)
 
 	    return local_table
 	else
-		print("no file")
+		print(fileName .. ": no file")
 	end
 end
 
-function generateRassler()
+function generateRassler(rank)
 
 	local rassler = {}
 
@@ -176,20 +194,24 @@ function generateRassler()
 	player_starting_health = math.random(70,player_starting_max_health)
 	player_starting_money = math.random(50,100)
 
+	rassler['id'] = "wres-" .. generate_uuid()
 	rassler['name'] = generateRasslerName()
-	rassler['image'] = math.random(1,rasslers)
+	rassler['image'] = math.random(1,number_of_rassler_icons)
 	rassler['nickname'] = generateRasslerNickname()
 	rassler['favorite_move'] = generateFavoriteMove()
-	rassler['skill'] = math.random(1,3)
-	rassler['health'] = player_starting_health
-	rassler['max_health'] = player_starting_max_health
+	rassler['health'] = player_starting_health*rank
+	rassler['max_health'] = player_starting_max_health*rank
 	rassler['popularity'] = 0
 	rassler['matches'] = 0
-	rassler['age'] = 20
+	rassler['age'] = math.random(16,40)
 	rassler['money'] = player_starting_money
 	rassler['money_spent'] = 0
 	rassler['money_earned'] = 0
 	rassler['active_effects'] = {}
+	rassler['athletics'] = math.random(4,18)
+	rassler['strength'] = math.random(4,18)
+	rassler['showmanship'] = math.random(4,18)
+	rassler['technical'] = math.random(4,18)
 
 	return rassler
 end
@@ -223,6 +245,7 @@ function drawTerritorySelectScreen()
 	centerText(30, 'Choose Starting Territory', 15)
 	love.graphics.setFont(statFont)
 	love.graphics.print("Up/Down: Select territory. Enter: Do It", 90,550)
+	love.graphics.print("Space: View Territory info", 90,570)
 
 	local start = 60
 	local offset = 10
@@ -232,7 +255,7 @@ function drawTerritorySelectScreen()
 		love.graphics.print(territories[i].name, 40, start + offset)
 		offset = offset + 40
 		love.graphics.setFont(statFont)
-		love.graphics.print('Booker: ' .. territories[i].booker.name, 40, start + offset)
+		love.graphics.print('Owner: ' .. territories[i].booker.name, 40, start + offset)
 		offset = offset + 40
 
 		love.graphics.print('Popularity:', 40, start + offset)
@@ -255,6 +278,28 @@ function drawTerritorySelectScreen()
 	end
 end
 
+function drawTerritoryInfoScreen()
+	love.graphics.setColor(0,0,0) 
+
+	offset = 36
+	for j = 1, #territories[CURRENTLY_SELECTED_TERRITORY]['rasslers'] do
+		love.graphics.setFont(statFont)
+		love.graphics.print(territories[CURRENTLY_SELECTED_TERRITORY]['rasslers'][j]['nickname'] .. " " .. territories[CURRENTLY_SELECTED_TERRITORY]['rasslers'][j]['name'] .. ": " .. territories[CURRENTLY_SELECTED_TERRITORY]['rasslers'][j]['popularity'] .. " Fans", 20, (offset*j) - 30)
+
+		for i = 1, #championships do
+			if championships[i]['current_champion'] == territories[CURRENTLY_SELECTED_TERRITORY]['rasslers'][j]['id'] then
+
+				love.graphics.print("c", 0, (offset*j) - 30)
+			end
+		end
+
+		love.graphics.setFont(tinyFont)
+		love.graphics.print("Tech: " .. territories[CURRENTLY_SELECTED_TERRITORY]['rasslers'][j]['technical'], 20, ((offset*j)-30) + 20)
+	end
+
+	love.graphics.print("ESC: Go back", 10,570)
+end
+
 function generateTerritory()
 	territory = {}
 
@@ -265,7 +310,30 @@ function generateTerritory()
 	territory['popularity'] = math.random(1,12)
 	territory['size'] = math.random(1,4)
 	territory['fans'] = math.random(25, territory['popularity'] * (territory['size'] * 50))
+	territory['rasslers'] = {}
 
+	for i = 1, 15 do 
+		territory['rasslers'][i] = generateRassler(math.random(1,5))
+	end
+
+	for i = 1, 15 do
+		popularity_roll = math.random(1,territory['fans'])
+		territory['rasslers'][i]['popularity'] = popularity_roll
+	end
+
+	chosen_champion = math.random(1,15)
+
+	undisputed = false
+
+	for i = 1, 15 do
+		if territory['rasslers'][i]['popularity'] >= territory['rasslers'][chosen_champion]['popularity'] then
+			chosen_champion = i
+		end
+	end
+
+	championships[#championships+1] = {id = "title-" .. generate_uuid() , name = territory['name'], current_champion = territory['rasslers'][chosen_champion]['id'], title_history = {}}
+
+	print(territory['rasslers'][chosen_champion]['name'] .. " is inaugural " .. territory['name'] .. " champion, winning a tournament in Puerto Rico." )
 	return territory
 end
 
@@ -286,6 +354,10 @@ function love.draw()
 
 	if CURRENT_SCREEN == "territorySelect" then
 		drawTerritorySelectScreen()
+	end
+
+	if CURRENT_SCREEN == "territoryInfo" then
+		drawTerritoryInfoScreen()
 	end
 
 	if CURRENT_SCREEN == "start" then
@@ -337,6 +409,11 @@ function love.draw()
 	end
 
 	drawEphemeralMessages()
+
+	if CURRENT_SCREEN ~= "title" then
+		-- Buttons don't exist yet. Soon.
+		--drawButtons()
+	end
 end
 
 function drawRandomEventScreen(event)
@@ -396,7 +473,7 @@ end
 function drawTitleScreen()
 	drawStartScreen()
 
-	love.graphics.setColor(0,0,0,220)
+	love.graphics.setColor(0,0,0,230)
 	love.graphics.rectangle("fill", 0, 0, window_width, window_height)
 	titleFont = love.graphics.newFont("prstart.ttf",100)
 
@@ -409,7 +486,7 @@ function drawTitleScreen()
 	centerText(100,"RASSLER", 200)
 	love.graphics.setFont(statFont)
 	love.graphics.setColor(200,200,200,200)
-	centerText(20,"release 9", 310)
+	centerText(20,"release 10", 310)
 
 
 	love.graphics.setFont(statFont)
@@ -420,8 +497,6 @@ function drawTitleScreen()
 	love.graphics.setFont(mainFont)
 	love.graphics.setColor(255,255,255)
 	centerText(30,"PRESS START", 400)
-
-
 end
 
 function centerText(size, string, y)
@@ -429,6 +504,27 @@ function centerText(size, string, y)
 	x = (window_width/2) - ((string.len(string) * size)) / 2
 
 	love.graphics.print(string, x, y)
+end
+
+function centerButton(size, string, y)
+
+	box_x = 20
+	text_x = (window_width/2) - ((string.len(string) * size)) / 2
+	box_y = y
+	text_y = y
+	width = window_width - 40
+
+	love.graphics.setColor(0, 0, 0, 255)
+	love.graphics.rectangle( "fill", box_x, box_y, width, 46 )
+	love.graphics.setColor(255, 255, 255, 255)
+	love.graphics.print(string, text_x, 11+text_y)
+
+end
+
+function addButton(size, string, x, y, width)
+
+	BUTTONS[#BUTTONS+1] = {text = string, x = x, y = y, size = size, width = width}
+
 end
 
 function drawCardScreen()
@@ -485,8 +581,9 @@ function drawCardScreen()
 end
 
 function makeMatch()
-	
-	newOpponent = generateRassler()
+
+	random_rassler = math.random(1,#territories[CURRENT_TERRITORY]['rasslers'])
+	newOpponent = territories[CURRENT_TERRITORY]['rasslers'][random_rassler]
 
 	venue = generateVenue()
 	capacity = math.floor(generateCapacity())
@@ -498,7 +595,7 @@ function makeMatch()
 	
 	opponent = newOpponent
 
-	player_pay = (1 * player.skill) * (attendence /100)
+	player_pay = (1 * player.technical) * (attendence /100)
 
 	if player_pay < 20 then
 		player_pay = 20
@@ -536,7 +633,7 @@ function drawHUD()
 	love.graphics.print(math.floor(player.age), 180, 40)
 	
 	love.graphics.print("SKILL", 300, 10)
-	love.graphics.print(math.floor(player.skill), 300, 40)
+	love.graphics.print(math.floor(player.technical), 300, 40)
 
 	love.graphics.print("DAY", 470, 10)
 	love.graphics.print(math.floor(day), 470, 40)
@@ -607,7 +704,7 @@ function drawResultScreen()
 	
 	love.graphics.setFont(mainFont)
 	love.graphics.setColor(255,255,255)
-	love.graphics.print("Press Enter To Go Home", 70,560)
+	love.graphics.print("Press Enter To Exit Arena", 25,560)
 	
 end
 
@@ -868,17 +965,23 @@ function drawStartScreen()
 
 	love.graphics.setFont(statFont)
 	love.graphics.print("Health", 420, 140)
-	love.graphics.print("/ Max", 540, 140)
-	love.graphics.print("Skill", 420, 210)
-	love.graphics.print("Money", 540, 210)
-	love.graphics.print("Favorite move:", 420, 280)
+	love.graphics.print("/ Max", 560, 140)
+	love.graphics.print("Money", 420, 210)
+	love.graphics.print("Athletics", 560, 210)
+	love.graphics.print("Strength", 420, 260)
+	love.graphics.print("Technical", 560, 260)
+	love.graphics.print("Showmanship", 420, 310)
+	love.graphics.print("Favorite move:", 420, 380)
 	--love.graphics.print("Hometown:", 420, 380)
 	
 	love.graphics.print(player.health, 420, 160)
-	love.graphics.print("/ " .. player.max_health, 540, 160)
-	love.graphics.print(player.skill, 420, 230)
-	love.graphics.print(player.money, 540, 230)
-	love.graphics.printf( player.favorite_move, 420, 310, 270, "left" )
+	love.graphics.print("/ " .. player.max_health, 560, 160)
+	love.graphics.print(player.money, 420, 230)
+	love.graphics.print(player.athletics, 560, 230)
+	love.graphics.print(player.strength, 420, 280)
+	love.graphics.print(player.technical, 560, 280)
+	love.graphics.print(player.showmanship, 420, 330)
+	love.graphics.printf( player.favorite_move, 420, 410, 270, "left" )
 	--love.graphics.printf( player.hometown, 420, 410, 270, "left" )
 
 	love.graphics.setFont(mainFont)
@@ -886,6 +989,12 @@ function drawStartScreen()
 
 	if SCREENSHOT_MODE == false then
 		centerText(30,"Press Space: New Rassler",520)
+
+		--centerButton(30,"New Rassler", 520)
+
+		--addButton(30, "New Rassler", 0 ,520, window_width/2-10)
+		--addButton(30, "Start Game", (window_width/2)+20, 520, (window_width/2) - 10)
+
 		centerText(30,"Press Enter: Start", 560)
 	end
 	love.graphics.setColor(0,0,0,255)
@@ -1165,90 +1274,91 @@ function handleKeyPress(key, currentScreen)
 	 		if current_activity_choice == 5 then
 				RETURN_TO = "prematch"
  				CURRENT_SCREEN = "gameOverConfirm"
- 			end
+ 			else
 
-	 		RETURN_TO = "card"
+		 		RETURN_TO = "card"
 
-	 		can_do_activity = false
+		 		can_do_activity = false
 
-	 		if (PRE_ACTIVITIES[current_activity_choice].money < 0) then
-		 		money_comparison = player.money - math.abs(PRE_ACTIVITIES[current_activity_choice].money)
-		 	else
-		 		money_comparison = player.money + PRE_ACTIVITIES[current_activity_choice].money
-		 	end
+		 		if (PRE_ACTIVITIES[current_activity_choice].money < 0) then
+			 		money_comparison = player.money - math.abs(PRE_ACTIVITIES[current_activity_choice].money)
+			 	else
+			 		money_comparison = player.money + PRE_ACTIVITIES[current_activity_choice].money
+			 	end
 
-		 	-- Can we afford this?
-	 		if money_comparison > 0 then
+			 	-- Can we afford this?
+		 		if money_comparison > 0 then
 
-	 			-- Does this damage our health?
-	 			if (PRE_ACTIVITIES[current_activity_choice].health < 0) then
-	 				-- If it does, we can't do it while our health is <= 0. We can only do helath-positive things then.
-	 				if (player.health <= 0) or ((player.health - math.abs(PRE_ACTIVITIES[current_activity_choice].health)) < 0) then
-	 				else
-	 					can_do_activity = true
-	 				end
-	 			else
-
-	 				if (player.health + PRE_ACTIVITIES[current_activity_choice].health) > 0 then
-	 					can_do_activity = true
-	 				end
-	 				
-	 			end
-
-	 			if can_do_activity == true then
-	 			
-		 			if (player.health + PRE_ACTIVITIES[current_activity_choice].health) > player.max_health then
-		 				player.health = player.max_health
+		 			-- Does this damage our health?
+		 			if (PRE_ACTIVITIES[current_activity_choice].health < 0) then
+		 				-- If it does, we can't do it while our health is <= 0. We can only do helath-positive things then.
+		 				if (player.health <= 0) or ((player.health - math.abs(PRE_ACTIVITIES[current_activity_choice].health)) < 0) then
+		 				else
+		 					can_do_activity = true
+		 				end
 		 			else
-		 				player.health = player.health + PRE_ACTIVITIES[current_activity_choice].health
+
+		 				if (player.health + PRE_ACTIVITIES[current_activity_choice].health) > 0 then
+		 					can_do_activity = true
+		 				end
+		 				
 		 			end
+
+		 			if can_do_activity == true then
 		 			
-		 			player.max_health = player.max_health + PRE_ACTIVITIES[current_activity_choice].max_health
-
-		 			if(PRE_ACTIVITIES[current_activity_choice].money < 0) then
-			 			player.money = player.money - math.abs(PRE_ACTIVITIES[current_activity_choice].money)
-			 		else
-			 			player.money = player.money + math.abs(PRE_ACTIVITIES[current_activity_choice].money)
-			 		end
-		 			
-		 			player.money_spent = player.money_spent + PRE_ACTIVITIES[current_activity_choice].money
-		 			player.popularity = player.popularity + PRE_ACTIVITIES[current_activity_choice].popularity
-
-					random_event_roll = math.random(1,20)
-					if random_event_roll > 15 then
-						CURRENT_RANDOM_EVENT = RANDOM_GYM_EVENTS[math.random(1,#RANDOM_GYM_EVENTS)]
-
-						-- Apply effects of selected event before changing screens
-						player.max_health = player.max_health + CURRENT_RANDOM_EVENT.max_health
-
-			 			if (player.health + CURRENT_RANDOM_EVENT.health) > player.max_health then
+			 			if (player.health + PRE_ACTIVITIES[current_activity_choice].health) > player.max_health then
 			 				player.health = player.max_health
-			 				
 			 			else
-			 				player.health = player.health + CURRENT_RANDOM_EVENT.health
+			 				player.health = player.health + PRE_ACTIVITIES[current_activity_choice].health
 			 			end
 			 			
-		 				if CURRENT_RANDOM_EVENT.money == "-half" then
-							money_effect = player.money * 0.5
+			 			player.max_health = player.max_health + PRE_ACTIVITIES[current_activity_choice].max_health
+
+			 			if(PRE_ACTIVITIES[current_activity_choice].money < 0) then
+				 			player.money = player.money - math.abs(PRE_ACTIVITIES[current_activity_choice].money)
+				 		else
+				 			player.money = player.money + math.abs(PRE_ACTIVITIES[current_activity_choice].money)
+				 		end
+			 			
+			 			player.money_spent = player.money_spent + PRE_ACTIVITIES[current_activity_choice].money
+			 			player.popularity = player.popularity + PRE_ACTIVITIES[current_activity_choice].popularity
+
+						random_event_roll = math.random(1,20)
+						if random_event_roll > 15 then
+							CURRENT_RANDOM_EVENT = RANDOM_GYM_EVENTS[math.random(1,#RANDOM_GYM_EVENTS)]
+
+							-- Apply effects of selected event before changing screens
+							player.max_health = player.max_health + CURRENT_RANDOM_EVENT.max_health
+
+				 			if (player.health + CURRENT_RANDOM_EVENT.health) > player.max_health then
+				 				player.health = player.max_health
+				 				
+				 			else
+				 				player.health = player.health + CURRENT_RANDOM_EVENT.health
+				 			end
+				 			
+			 				if CURRENT_RANDOM_EVENT.money == "-half" then
+								money_effect = ((player.money * 0.5) - player.money)
+							else
+								money_effect = CURRENT_RANDOM_EVENT.money
+							end
+
+							if money_effect > 0 then
+								player.money = player.money + money_effect
+							else
+								player.money = player.money - money_effect
+							end
+
+							if((player.popularity + CURRENT_RANDOM_EVENT.popularity) > 0) then
+				 				player.popularity = player.popularity + CURRENT_RANDOM_EVENT.popularity
+				 			else
+				 				player.popularity = 0
+				 			end
+
+							CURRENT_SCREEN = "randomEvent"
 						else
-							money_effect = CURRENT_RANDOM_EVENT.money
+							CURRENT_SCREEN = "card"
 						end
-
-						if money_effect > 0 then
-							player.money = player.money + money_effect
-						else
-							player.money = player.money - money_effect
-						end
-
-						if((player.popularity + CURRENT_RANDOM_EVENT.popularity) > 0) then
-			 				player.popularity = player.popularity + CURRENT_RANDOM_EVENT.popularity
-			 			else
-			 				player.popularity = 0
-			 			end
-
-						CURRENT_SCREEN = "randomEvent"
-					else
-						CURRENT_SCREEN = "card"
 					end
 				end
 			end
@@ -1257,16 +1367,16 @@ function handleKeyPress(key, currentScreen)
 	
 	if key == "space" then
 		if currentScreen == "start" then
-			player = generateRassler()
+			player = generateRassler(1)
 		end
 
 		if currentScreen == "territorySelect" then
-			territories[1] = generateTerritory()
-			territories[2] = generateTerritory()
-			territories[3] = generateTerritory()
+			CURRENTLY_SELECTED_TERRITORY = current_territory_choice
+			CURRENT_SCREEN = "territoryInfo"
+			RETURN_TO = "territorySelect" 
 		end
 	end
-	
+
 	if key == "up" then
 		if currentScreen == "match" then
 			if current_work_mode > 1 then
@@ -1337,6 +1447,10 @@ function handleKeyPress(key, currentScreen)
 
 	if key == "escape" then
 		if currentScreen == "gameOverConfirm" then
+			CURRENT_SCREEN = RETURN_TO
+		end
+
+		if currentScreen == "territoryInfo" then
 			CURRENT_SCREEN = RETURN_TO
 		end
 	end
@@ -1436,10 +1550,33 @@ end
 
 function generateRasslerName()
 	
+	-- When we generate any new name, let's make sure that we haven't already used it. This can cause a lock-up if we run out of names!
+
 	if tablelength(namesFirst) == 0 or tablelength(namesLast) == 0 then
 		return "Joe Junkpan"
 	else
-		return namesFirst[math.random(1,tablelength(namesFirst))] .. ' ' .. namesLast[math.random(1,tablelength(namesLast))]
+		-- assume the name we guessed has already been used
+		goodName = false
+
+		while goodName == false do
+			newName = namesFirst[math.random(1,tablelength(namesFirst))] .. ' ' .. namesLast[math.random(1,tablelength(namesLast))]
+			match = false
+
+			for i = 1, #territories do
+				for j = 1, #territories[i]['rasslers'] do
+					if territories[i]['rasslers'][j]['name'] == newName then
+						match = true
+					end
+				end
+			end
+
+			if match == false then
+				goodName = true
+			end
+
+		end
+
+		return newName
 	end
 	
 	
@@ -1465,4 +1602,35 @@ function tablelength(T)
   local count = 0
   for _ in pairs(T) do count = count + 1 end
   return count
+end
+
+function generate_uuid()
+    local template ='xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'
+    return string.gsub(template, '[xy]', function (c)
+        local v = (c == 'x') and math.random(0, 0xf) or math.random(8, 0xb)
+        return string.format('%x', v)
+    end)
+end
+
+function spairs(t, order)
+    -- collect the keys
+    local keys = {}
+    for k in pairs(t) do keys[#keys+1] = k end
+
+    -- if order function given, sort by it by passing the table and keys a, b,
+    -- otherwise just sort the keys 
+    if order then
+        table.sort(keys, function(a,b) return order(t, a, b) end)
+    else
+        table.sort(keys)
+    end
+
+    -- return the iterator function
+    local i = 0
+    return function()
+        i = i + 1
+        if keys[i] then
+            return keys[i], t[keys[i]]
+        end
+    end
 end
