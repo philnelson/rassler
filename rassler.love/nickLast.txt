@@ -32,3 +32,4 @@ Statesman
 Prototype
 Goblin
 Brute
+Brain
