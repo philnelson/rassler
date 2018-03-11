@@ -36,6 +36,7 @@ function love.load()
 	RANDOM_GYM_EVENTS[5] = {title="Arm Wrestling Champ", description="You won an arm wrestling competition at the gym.", health = 0, money = 50, max_health = 0, popularity = 5}
 	RANDOM_GYM_EVENTS[6] = {title="Good Trainer", description="You've got a new trainer. They're helping you a lot.", health = 0, money = 0, max_health = 2, popularity = 0}
 	RANDOM_GYM_EVENTS[7] = {title="New Sponsor", description="You got a new sponsor due to your gym prowess.", health = 0, money = 100, max_health = 0, popularity = 10}
+	RANDOM_GYM_EVENTS[7] = {title="Bad Trainer", description="You've got a new trainer. You're not getting along with them.", health = -5, money = 0, max_health = -1, popularity = 0}
 
 	RANDOM_MATCH_EVENTS = {}
 	RANDOM_MATCH_EVENTS[1] = {title="Mild Injury", description="You pulled a muscle in the match. It'll be sore for awhile.", health = -10, money = 0, max_health = -2, popularity = 0}
@@ -43,7 +44,8 @@ function love.load()
 	RANDOM_MATCH_EVENTS[3] = {title="Bad Match", description="You stunk up the joint out there. The people did not like what they saw.", health = 0, money = 0, max_health = 0, popularity = -5}
 	RANDOM_MATCH_EVENTS[4] = {title="Something Clicked", description="You can't explain it, but you just feel more comfortable in the ring now.", health = 0, money = 0, max_health = 0, popularity = 1}
 	RANDOM_MATCH_EVENTS[5] = {title="Serious Injury", description="Your opponnent dropped you hard on your neck. You're hurt pretty bad.", health = -30, money = 0, max_health = -10, popularity = 0}
-	RANDOM_MATCH_EVENTS[5] = {title="New Move", description="You got the hang of a new technique, and used it well in the match tonight.", health = 0, money = 0, max_health = 0, popularity = 2}
+	RANDOM_MATCH_EVENTS[6] = {title="New Move", description="You got the hang of a new technique, and used it well in the match tonight.", health = 0, money = 0, max_health = 0, popularity = 2}
+	RANDOM_MATCH_EVENTS[7] = {title="Word of Mouth", description="The quality of your match impressed a lot of people.", health = 0, money = 0, max_health = 0, popularity = 10}
 
 	CURRENT_RANDOM_EVENT = false
 	CURRENT_RANDOM_MATCH_EVENT = false
@@ -281,7 +283,7 @@ end
 function drawTerritoryInfoScreen()
 	love.graphics.setColor(0,0,0) 
 
-	offset = 36
+	offset = 37
 	for j = 1, #territories[CURRENTLY_SELECTED_TERRITORY]['rasslers'] do
 		love.graphics.setFont(statFont)
 		love.graphics.print(territories[CURRENTLY_SELECTED_TERRITORY]['rasslers'][j]['nickname'] .. " " .. territories[CURRENTLY_SELECTED_TERRITORY]['rasslers'][j]['name'] .. ": " .. territories[CURRENTLY_SELECTED_TERRITORY]['rasslers'][j]['popularity'] .. " Fans", 20, (offset*j) - 30)
@@ -294,7 +296,10 @@ function drawTerritoryInfoScreen()
 		end
 
 		love.graphics.setFont(tinyFont)
-		love.graphics.print("Tech: " .. territories[CURRENTLY_SELECTED_TERRITORY]['rasslers'][j]['technical'], 20, ((offset*j)-30) + 20)
+		love.graphics.print("TECH: " .. territories[CURRENTLY_SELECTED_TERRITORY]['rasslers'][j]['technical'], 20, ((offset*j)-30) + 20)
+		love.graphics.print("ATH: " .. territories[CURRENTLY_SELECTED_TERRITORY]['rasslers'][j]['athletics'], 130, ((offset*j)-30) + 20)
+		love.graphics.print("STR: " .. territories[CURRENTLY_SELECTED_TERRITORY]['rasslers'][j]['strength'], 240, ((offset*j)-30) + 20)
+		love.graphics.print("SHOW: " .. territories[CURRENTLY_SELECTED_TERRITORY]['rasslers'][j]['showmanship'], 360, ((offset*j)-30) + 20)
 	end
 
 	love.graphics.print("ESC: Go back", 10,570)
