@@ -29,21 +29,21 @@ function love.load()
 	EPHEMERAL_MESSAGES = {}
 
 	RANDOM_GYM_EVENTS = {}
-	RANDOM_GYM_EVENTS[1] = {title="Street Fight", description="You got blindsided by a 'fan' at the gym, and were beaten pretty badly. Then you noticed your wallet was lighter... ", health = -10, money = "-half", max_health = -2, popularity = -10, skill=0}
-	RANDOM_GYM_EVENTS[2] = {title="Workout Groove", description="You're in a groove with your workout. Your maximum health is slightly increased.", health = 1, money = 0, max_health = 1, popularity = 0, skill=0}
-	RANDOM_GYM_EVENTS[3] = {title="Mild Injury", description="You sprained your ankle in training. Your max health went down slightly.", health = -1, money = 0, max_health = -1, popularity = 0, skill=0}
-	RANDOM_GYM_EVENTS[4] = {title="Stolen Passport", description="Some jerk stole your passport and took a bunch of your money.", health = 0, money = "-half", max_health = 0, popularity = 0, skill=0}
-	RANDOM_GYM_EVENTS[5] = {title="Arm Wrestling Champ", description="You won an arm wrestling competition at the gym.", health = 0, money = 50, max_health = 0, popularity = 5, skill=0}
-	RANDOM_GYM_EVENTS[6] = {title="Good Trainer", description="You've got a new trainer. They're helping you a lot.", health = 0, money = 0, max_health = 2, popularity = 0, skill=1}
-	RANDOM_GYM_EVENTS[7] = {title="New Sponsor", description="You got a new sponsor due to your gym prowess.", health = 0, money = 100, max_health = 0, popularity = 10, skill=0}
+	RANDOM_GYM_EVENTS[1] = {title="Street Fight", description="You got blindsided by a 'fan' at the gym, and were beaten pretty badly. Then you noticed your wallet was lighter... ", health = -10, money = "-half", max_health = -2, popularity = -10}
+	RANDOM_GYM_EVENTS[2] = {title="Workout Groove", description="You're in a groove with your workout. Your maximum health is slightly increased.", health = 1, money = 0, max_health = 1, popularity = 0}
+	RANDOM_GYM_EVENTS[3] = {title="Mild Injury", description="You sprained your ankle in training. Your max health went down slightly.", health = -1, money = 0, max_health = -1, popularity = 0}
+	RANDOM_GYM_EVENTS[4] = {title="Stolen Passport", description="Some jerk stole your passport and took a bunch of your money.", health = 0, money = "-half", max_health = 0, popularity = 0}
+	RANDOM_GYM_EVENTS[5] = {title="Arm Wrestling Champ", description="You won an arm wrestling competition at the gym.", health = 0, money = 50, max_health = 0, popularity = 5}
+	RANDOM_GYM_EVENTS[6] = {title="Good Trainer", description="You've got a new trainer. They're helping you a lot.", health = 0, money = 0, max_health = 2, popularity = 0}
+	RANDOM_GYM_EVENTS[7] = {title="New Sponsor", description="You got a new sponsor due to your gym prowess.", health = 0, money = 100, max_health = 0, popularity = 10}
 
 	RANDOM_MATCH_EVENTS = {}
-	RANDOM_MATCH_EVENTS[1] = {title="Mild Injury", description="You pulled a muscle in the match. It'll be sore for awhile.", health = -10, money = 0, max_health = -2, popularity = 0, skill=0}
-	RANDOM_MATCH_EVENTS[2] = {title="Great Match", description="You really stole the show out there tonight. The crowd loved it.", health = 0, money = 0, max_health = 0, popularity = 5, skill=0}
-	RANDOM_MATCH_EVENTS[3] = {title="Bad Match", description="You stunk up the joint out there. The people did not like what they saw.", health = 0, money = 0, max_health = 0, popularity = -5, skill=0}
-	RANDOM_MATCH_EVENTS[4] = {title="Something Clicked", description="You can't explain it, but you just feel more comfortable in the ring now.", health = 0, money = 0, max_health = 0, popularity = 1, skill=5}
-	RANDOM_MATCH_EVENTS[5] = {title="Serious Injury", description="Your opponnent dropped you hard on your neck. You're hurt pretty bad.", health = -30, money = 0, max_health = -10, popularity = 0, skill=0}
-	RANDOM_MATCH_EVENTS[5] = {title="New Move", description="You got the hang of a new technique, and used it well in the match tonight.", health = 0, money = 0, max_health = 0, popularity = 2, skill=1}
+	RANDOM_MATCH_EVENTS[1] = {title="Mild Injury", description="You pulled a muscle in the match. It'll be sore for awhile.", health = -10, money = 0, max_health = -2, popularity = 0}
+	RANDOM_MATCH_EVENTS[2] = {title="Great Match", description="You really stole the show out there tonight. The crowd loved it.", health = 0, money = 0, max_health = 0, popularity = 5}
+	RANDOM_MATCH_EVENTS[3] = {title="Bad Match", description="You stunk up the joint out there. The people did not like what they saw.", health = 0, money = 0, max_health = 0, popularity = -5}
+	RANDOM_MATCH_EVENTS[4] = {title="Something Clicked", description="You can't explain it, but you just feel more comfortable in the ring now.", health = 0, money = 0, max_health = 0, popularity = 1}
+	RANDOM_MATCH_EVENTS[5] = {title="Serious Injury", description="Your opponnent dropped you hard on your neck. You're hurt pretty bad.", health = -30, money = 0, max_health = -10, popularity = 0}
+	RANDOM_MATCH_EVENTS[5] = {title="New Move", description="You got the hang of a new technique, and used it well in the match tonight.", health = 0, money = 0, max_health = 0, popularity = 2}
 
 	CURRENT_RANDOM_EVENT = false
 	CURRENT_RANDOM_MATCH_EVENT = false
@@ -333,7 +333,7 @@ function generateTerritory()
 
 	championships[#championships+1] = {id = "title-" .. generate_uuid() , name = territory['name'], current_champion = territory['rasslers'][chosen_champion]['id'], title_history = {}}
 
-	print(territory['rasslers'][chosen_champion]['name'] .. " is inaugural " .. territory['name'] .. " champion, winning a tournament in Puerto Rico." )
+	--print(territory['rasslers'][chosen_champion]['name'] .. " is inaugural " .. territory['name'] .. " champion, winning a tournament in Puerto Rico." )
 	return territory
 end
 
@@ -439,9 +439,6 @@ function drawRandomEventScreen(event)
 	love.graphics.print("HEALTH / MAX", 40, 440)
 	love.graphics.print(event.health .. " / " .. event.max_health, 40, 480)
 	
-	love.graphics.print("SKILL", 380, 440)
-	love.graphics.print(event.skill, 380, 480)
-	
 	love.graphics.print("FANS", 520, 440)
 	love.graphics.print(event.popularity, 520, 480)
 	
@@ -486,8 +483,7 @@ function drawTitleScreen()
 	centerText(100,"RASSLER", 200)
 	love.graphics.setFont(statFont)
 	love.graphics.setColor(200,200,200,200)
-	centerText(20,"release 10", 310)
-
+	centerText(20,"release 11", 310)
 
 	love.graphics.setFont(statFont)
 	love.graphics.setColor(255,255,255,255)
@@ -631,18 +627,27 @@ function drawHUD()
 	
 	love.graphics.print("AGE", 180, 10)
 	love.graphics.print(math.floor(player.age), 180, 40)
-	
-	love.graphics.print("SKILL", 300, 10)
-	love.graphics.print(math.floor(player.technical), 300, 40)
 
-	love.graphics.print("DAY", 470, 10)
-	love.graphics.print(math.floor(day), 470, 40)
+	love.graphics.print("ATH", 270, 10)
+	love.graphics.print(math.floor(player.athletics), 330, 10)
+
+	love.graphics.print("STR", 270, 40)
+	love.graphics.print(math.floor(player.strength), 330, 40)
+
+	love.graphics.print("TECH", 390, 10)
+	love.graphics.print(math.floor(player.technical), 470, 10)
+
+	love.graphics.print("SHOW", 390, 40)
+	love.graphics.print(math.floor(player.showmanship), 470, 40)
+
+	--love.graphics.print("DAY", 470, 10)
+	--love.graphics.print(math.floor(day), 470, 40)
 	
 	love.graphics.print("FANS", 570, 10)
 	love.graphics.print(math.floor(player.popularity), 570, 40)
 	
-	love.graphics.print("$", 670, 10)
-	love.graphics.print(math.floor(player.money), 670, 40)
+	love.graphics.print("$", 680, 10)
+	love.graphics.print(math.floor(player.money), 680, 40)
 	
 	love.graphics.setColor(255,255,255)
 	
@@ -888,7 +893,10 @@ function drawEndScreen()
 	love.graphics.print("Money spent: $" .. player.money_spent, 20, 200)
 
 	love.graphics.print("Money left: $" .. player.money, 20, 240)
-	love.graphics.print("Game Over", 20, 600)
+	--love.graphics.print("Game Over", 120, 500)
+
+	love.graphics.print("ESC: Quit", 20, 500)
+	love.graphics.print("Return: One... More... Game...", 20, 540)
 	
 end
 
@@ -954,10 +962,8 @@ function drawStartScreen()
 	love.graphics.setFont(mainFont)
 
 	if SCREENSHOT_MODE == false then
-		love.graphics.print("Wrestler (de)Generation", 20, 20)
+		love.graphics.print("Choose Your Wrestler", 20, 20)
 	end
-	--love.graphics.print("Alright kid, here's what", 20, 120)
-	--love.graphics.print("we came up with for you.", 20, 160)
 	
 
 	love.graphics.setFont(tinyFont)
@@ -1059,6 +1065,10 @@ function handleKeyPress(key, currentScreen)
 			CURRENT_SCREEN = "gameOver"
 		end
 
+		if currentScreen == "gameOver" then
+			 love.load()
+		end
+
 		if currentScreen == "title" then
 			CURRENT_SCREEN = "start"
 		end
@@ -1067,7 +1077,7 @@ function handleKeyPress(key, currentScreen)
 			CURRENT_SCREEN = "territorySelect"
 		end
 		if currentScreen == "card" then
-			MATCHES[#MATCHES+1] = {screen = currentScreen, health = player.health, popularity = player.popularity, skill = player.skill, age = player.age, money = player.money, match = match, opponent=opponent}
+			MATCHES[#MATCHES+1] = {screen = currentScreen, health = player.health, popularity = player.popularity, age = player.age, money = player.money, match = match, opponent=opponent}
 			
 			CURRENT_SCREEN = "match"
 		end
@@ -1077,66 +1087,38 @@ function handleKeyPress(key, currentScreen)
 	    	RETURN_TO = "result"
 
 			health_change = math.floor(math.random(1,WORK_MODES[current_work_mode].health))
-			--popularity_change = math.floor(math.random(1,WORK_MODES[current_work_mode].popularity)*player.skill/2)
-			popularity_change = false
-			potential_fans = match.attendence
+			popularity_change = 0
 
-			skill_bonus = 0
+			popularity_roll = math.random(1,4)
 
-			pop_bonus = 0
-
-			if player.skill > 10 then
-				skill_bonus = 1
-			elseif player.skill > 50 then
-				skill_bonus = 2
-			elseif player.skill > 100 then
-				skill_bonus = 3
+			-- 3 levels of fan attachment
+			if popularity_roll == 1 then
+				popularity_change = math.random(1,(match.attendence/10))
 			end
 
-			if player.popularity > 100 then
-				pop_bonus = 1
-			elseif player.popularity > 200 then
-				pop_bonus = 2
-			elseif player.popularity > 300 then
-				pop_bonus = 3
+			if popularity_roll == 2 or popularity_roll == 3 then
+				popularity_change = math.random(1,(match.attendence/7))
 			end
 
-			-- Check if we gain any fans at all, or if we shit the bed.
-			if (math.random(1,20) + skill_bonus) > 0 then
-				-- Gain fans
-				while popularity_change == false do
-					-- This is causing an infinite loop.
-					popularity_roll = math.random(pop_bonus + WORK_MODES[current_work_mode].popularity, 20)
-
-					if popularity_roll > 10 then
-						fake_fans = math.floor(potential_fans * (WORK_MODES[current_work_mode].popularity * 0.1))
-					else
-						fake_fans = math.floor(potential_fans * (WORK_MODES[current_work_mode].popularity * 0.01))
-					end
-
-					popularity_change = fake_fans
-				end
+			if popularity_roll == 4 then
+				popularity_change = math.random(1,match.attendence/5)
 			end
 
 			player.health = player.health - health_change
 
-			if popularity_change ~= false then
-				if((player.popularity + popularity_change) > 0) then
-					player.popularity = player.popularity + popularity_change
-				else
-					player.popularity = 0;
-				end
+			if((player.popularity + popularity_change) > 0) then
+				player.popularity = player.popularity + popularity_change
+			else
+				player.popularity = 0;
 			end
 
 			player.money = player.money + match.pay
 
 			player.money_earned = player.money_earned + match.pay
 
-			player.skill = player.skill + 1
-
 			player.age = player.age + (0.033)
 
-			MATCHES[#MATCHES+1] = {screen = currentScreen, health = player.health, popularity = player.popularity, skill = player.skill, age = player.age, money = player.money, match = match, opponent=opponent}
+			MATCHES[#MATCHES+1] = {screen = currentScreen, health = player.health, popularity = player.popularity, age = player.age, money = player.money, match = match, opponent=opponent}
 
 			savePlayerStatus()
 
@@ -1231,7 +1213,7 @@ function handleKeyPress(key, currentScreen)
 
 			 			player.popularity = player.popularity + ACTIVITIES[current_activity_choice].popularity
 
-			 			MATCHES[#MATCHES+1] = {screen = currentScreen, health = player.health, popularity = player.popularity, skill = player.skill, age = player.age, money = player.money, match = match}
+			 			MATCHES[#MATCHES+1] = {screen = currentScreen, health = player.health, popularity = player.popularity, age = player.age, money = player.money, match = match}
 				
 			 			match = makeMatch()
 
@@ -1452,6 +1434,10 @@ function handleKeyPress(key, currentScreen)
 
 		if currentScreen == "territoryInfo" then
 			CURRENT_SCREEN = RETURN_TO
+		end
+
+		if currentScreen == "gameOver" then
+			love.event.quit()
 		end
 	end
 end
